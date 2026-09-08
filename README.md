@@ -96,11 +96,11 @@ Zion - Frontend (sa frontend branch ka mag push ng files mo)
     - View Result
 
   - Result Page
-   - List of students
-   - Score
-   - Percentage
-   - Date/Time
-   - Average Score
+    - List of students
+    - Score
+    - Percentage
+    - Date/Time
+    - Average Score
 
   - Quiz List(Student side)
     - Available Quizzes
