@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create an Account</title>
+</head>
+<body>
+
+  <main>
+    <h1>Create an account</h1>
+    <p>Sign up to get started.</p>
+
+    <!-- Error / status messages are written here by signup.js -->
+    <div id="signup-message" role="alert" aria-live="polite" hidden></div>
+
+    <!--form of the elements of the signup page-->
+    <form id="signup-form" novalidate>
+
+      <!--first name text-field-->
+      <div>
+        <label for="first-name">First name</label>
+        <input
+          type="text"
+          id="first-name"
+          name="firstName"
+          autocomplete="given-name"
+          required
+          autofocus
+        >
+        <span id="first-name-error" class="field-error" hidden></span>
+      </div>
+      
+      <!--middle name text-field-->
+      <div>
+        <label for="middle-name">Middle name</label>
+        <input
+          type="text"
+          id="middle-name"
+          name="middleName"
+          autocomplete="additional-name"
+        >
+        <span id="middle-name-error" class="field-error" hidden></span>
+      </div>
+
+      <!--last name text field-->
+      <div>
+        <label for="last-name">Last name</label>
+        <input
+          type="text"
+          id="last-name"
+          name="lastName"
+          autocomplete="family-name"
+          required
+        >
+        <span id="last-name-error" class="field-error" hidden></span>
+      </div>
+
+      <!--email address field-->
+      <div>
+        <label for="email">Email address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          autocomplete="email"
+          autocapitalize="none"
+          spellcheck="false"
+          required
+        >
+        <span id="email-error" class="field-error" hidden></span>
+      </div>
+      <!--username text-field-->
+      <div>
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
+          aria-describedby="username-hint"
+          required
+        >
+        <small id="username-hint">
+          3 to 30 characters: letters, numbers, dots, underscores, or hyphens.
+        </small>
+        <span id="username-error" class="field-error" hidden></span>
+      </div>
+
+      <!--password text-field-->
+      <div>
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          autocomplete="new-password"
+          aria-describedby="password-hint"
+          required
+        >
+
+        <!--show password button-->
+        <button
+          type="button"
+          id="toggle-password"
+          data-toggle-password
+          data-target="password"
+          aria-controls="password"
+          aria-pressed="false"
+        >Show</button>
+        <small id="password-hint">
+          At least 8 characters, with one uppercase letter, one lowercase letter, and one number.
+        </small>
+        <span id="password-error" class="field-error" hidden></span>
+      </div>
+
+      <!--confirm password text-field-->
+      <div>
+        <label for="confirm-password">Confirm password</label>
+        <input
+          type="password"
+          id="confirm-password"
+          name="confirmPassword"
+          autocomplete="new-password"
+          required
+        >
+        <!--show confirm password button-->
+        <button
+          type="button"
+          id="toggle-confirm-password"
+          data-toggle-password
+          data-target="confirm-password"
+          aria-controls="confirm-password"
+          aria-pressed="false"
+        >Show</button>
+        <span id="confirm-password-error" class="field-error" hidden></span>
+      </div>
+      
+      <!--create account button-->
+      <button type="submit" id="signup-button">Create account</button>
+    </form>
+
+    <!--link to login page-->
+    <p>
+      Already have an account?
+      <a href="login.html" id="login-link">Log in</a>
+    </p>
+  </main>
+
+  <noscript>JavaScript must be enabled to create an account.</noscript>
+
+  <script src="signup.js"></script>
+</body>
+</html>
