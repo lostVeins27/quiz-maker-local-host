@@ -1,14 +1,19 @@
 //change this to the real signup endpoint
 const SIGNUP_URL = "/api/signup";
 
-//Where to go after the account is created
-const LOGIN_PAGE = "login.html";
+//Where to go after the account is created, based on the selected role
+const DASHBOARDS = {
+  student: "student-dashboard.html",
+  professor: "professor-dashboard.html"
+};
 
 //Get the elements
 const form = document.getElementById("signup-form");
 const messageBox = document.getElementById("signup-message");
 const signupButton = document.getElementById("signup-button");
 
+const roleRadios = document.querySelectorAll('input[name="role"]');
+const firstRoleRadio = document.getElementById("student");
 const firstNameInput = document.getElementById("first-name");
 const middleNameInput = document.getElementById("middle-name");
 const lastNameInput = document.getElementById("last-name");
@@ -49,6 +54,7 @@ function clearFieldError(input, errorId) {
 
 // Clear every field error
 function clearAllErrors() {
+  clearFieldError(firstRoleRadio, "role-error");
   clearFieldError(firstNameInput, "first-name-error");
   clearFieldError(middleNameInput, "middle-name-error");
   clearFieldError(lastNameInput, "last-name-error");
@@ -58,12 +64,29 @@ function clearAllErrors() {
   clearFieldError(confirmPasswordInput, "confirm-password-error");
 }
 
+//Returns "student", "professor", or "" if nothing is selected
+function getSelectedRole() {
+  const selected = document.querySelector('input[name="role"]:checked');
+  return selected ? selected.value : "";
+}
+
 //Validation rules
 
 // Letters, spaces, apostrophes, periods and hyphens
 const namePattern = /^\p{L}[\p{L}\s'.-]*$/u;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const usernamePattern = /^[A-Za-z0-9._-]{3,30}$/;
+
+//Returns an error message, or "" if the role is fine
+function checkRole(value) {
+  if (value === "") {
+    return "Please select whether you are a student or a professor.";
+  }
+  if (!Object.prototype.hasOwnProperty.call(DASHBOARDS, value)) {
+    return "Please select a valid role.";
+  }
+  return "";
+}
 
 //Returns an error message, or "" if the name is fine
 function checkName(value, label) {
@@ -79,6 +102,7 @@ function checkName(value, label) {
   return "";
 }
 
+//Returns an error message, or "" if the email is fine
 function checkEmail(value) {
   if (value === "") {
     return "Email address is required.";
@@ -89,6 +113,7 @@ function checkEmail(value) {
   return "";
 }
 
+//Returns an error message, or "" if the username is fine
 function checkUsername(value) {
   if (value === "") {
     return "Username is required.";
@@ -99,6 +124,7 @@ function checkUsername(value) {
   return "";
 }
 
+//Password must be at least 8 characters, with at least one uppercase letter, one lowercase letter, and one number
 function checkPassword(value) {
   if (value === "") {
     return "Password is required.";
@@ -118,6 +144,7 @@ function checkPassword(value) {
   return "";
 }
 
+//Returns an error message, or "" if the confirm password is fine
 function checkConfirmPassword(password, confirmPassword) {
   if (confirmPassword === "") {
     return "Please confirm your password.";
@@ -134,6 +161,7 @@ function validateForm() {
 
   // Passwords are NOT trimmed, spaces can be part of a password
   const checks = [
+    { input: firstRoleRadio, errorId: "role-error", error: checkRole(getSelectedRole()) },
     { input: firstNameInput, errorId: "first-name-error", error: checkName(firstNameInput.value.trim(), "First name") },
     { input: middleNameInput, errorId: "middle-name-error", error: middleNameInput.value.trim() === "" ? "" : checkName(middleNameInput.value.trim(), "Middle name") },
     { input: lastNameInput, errorId: "last-name-error", error: checkName(lastNameInput.value.trim(), "Last name") },
@@ -181,6 +209,11 @@ toggleButtons.forEach(function (button) {
 });
 
 //Clear a field's error while the user is fixing it
+roleRadios.forEach(function (radio) {
+  radio.addEventListener("change", function () {
+    clearFieldError(firstRoleRadio, "role-error");
+  });
+});
 firstNameInput.addEventListener("input", function () {
   clearFieldError(firstNameInput, "first-name-error");
 });
@@ -217,6 +250,7 @@ form.addEventListener("submit", async function (event) {
   //Data to send to the server
   //JSON object obtaining the signup data
   const userData = {
+    role: getSelectedRole(),
     firstName: firstNameInput.value.trim(),
     middleName: middleNameInput.value.trim(),
     lastName: lastNameInput.value.trim(),
@@ -246,11 +280,11 @@ form.addEventListener("submit", async function (event) {
       result = {};
     }
 
-    //if the server responds with a success status, redirect to the login page
+    //if the server responds with a success status, redirect to the dashboard for the selected role
     if (response.ok) {
-      showMessage("Account created! Redirecting to the login page...", "success");
-      window.location.href = LOGIN_PAGE;
-    } 
+      showMessage("Account created! Redirecting to your dashboard...", "success");
+      window.location.href = DASHBOARDS[userData.role];
+    }
     //if the server responds with an error status, show the error message
     else {
       showMessage(result?.message || "Could not create your account. Please try again.", "error");

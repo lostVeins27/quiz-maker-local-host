@@ -1,0 +1,44 @@
+/*make all error messages in red color*/
+.field-error {
+  color: #b00020;
+  font-size: 0.875rem;
+}
+
+/*each field row: label on top, input below, small gap between them*/
+form > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/*label takes the full first line, and pushes the input below it*/
+form > div > label:first-child {
+  flex: 0 0 100%;
+}
+
+/*inputs are 20 characters wide*/
+form > div > input[type="text"],
+form > div > input[type="email"],
+form > div > input[type="password"] {
+  flex: 0 0 auto;
+  width: 20ch;
+}
+
+/*error messages go on their own line under the input*/
+form > div > small,
+form > div > .field-error {
+  flex: 0 0 100%;
+}
+
+/*the first div is the Student / professor radio row, so keep it on one line*/
+form > div:first-of-type {
+  display: block;
+}
+
+/*radio error: show it on its own line under the radio buttons*/
+form > div:first-of-type > .field-error {
+  display: block;
+  margin-top: 0.4rem;
+}

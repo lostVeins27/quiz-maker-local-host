@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Create an Account</title>
+  <link rel="stylesheet" href="signup.css">
 </head>
 <body>
 
@@ -16,6 +17,17 @@
 
     <!--form of the elements of the signup page-->
     <form id="signup-form" novalidate>
+
+      <!--Radio button for student and teacher-->
+
+      <div>
+        <label for="role">I am a:</label>
+        <input type="radio" id="student" name="role" value="student" required>
+        <label for="student">Student</label>
+        <input type="radio" id="teacher" name="role" value="professor" required>
+        <label for="teacher">Professor</label>
+        <span id="role-error" class="field-error" hidden></span>
+      </div>
 
       <!--first name text-field-->
       <div>
@@ -148,8 +160,6 @@
       <a href="login.html" id="login-link">Log in</a>
     </p>
   </main>
-
-  <noscript>JavaScript must be enabled to create an account.</noscript>
 
   <script src="signup.js"></script>
 </body>
