@@ -1,35 +1,46 @@
+/*center the whole page content*/
+main {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
 /*make all error messages in red color*/
 .field-error {
   color: #b00020;
   font-size: 0.875rem;
 }
 
-/*each field row: label on top, input below, small gap between them*/
+/*each field row: label on top, input centered below, small gap between them*/
 form > div {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 20ch 1fr; /*left space | input (20 characters) | button space*/
   gap: 0.4rem 0.5rem;
+  align-items: center;
   margin-bottom: 1rem;
 }
 
-/*label takes the full first line, and pushes the input below it*/
-form > div > label:first-child {
-  flex: 0 0 100%;
+/*label, hint and error messages take the full width and are centered*/
+form > div > label:first-child,
+form > div > small,
+form > div > .field-error {
+  grid-column: 1 / -1;
 }
 
-/*inputs are 20 characters wide*/
+/*inputs are 20 characters wide, in the middle column*/
 form > div > input[type="text"],
 form > div > input[type="email"],
 form > div > input[type="password"] {
-  flex: 0 0 auto;
-  width: 20ch;
+  grid-column: 2;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/*error messages go on their own line under the input*/
-form > div > small,
-form > div > .field-error {
-  flex: 0 0 100%;
+/*show buttons sit to the right of the input*/
+form > div > button[data-toggle-password] {
+  grid-column: 3;
+  justify-self: start;
 }
 
 /*the first div is the Student / professor radio row, so keep it on one line*/
@@ -41,4 +52,9 @@ form > div:first-of-type {
 form > div:first-of-type > .field-error {
   display: block;
   margin-top: 0.4rem;
+}
+
+/*keep hidden errors hidden*/
+.field-error[hidden] {
+  display: none;
 }

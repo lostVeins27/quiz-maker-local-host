@@ -22,7 +22,7 @@
 
       <div>
         <label for="role">I am a:</label>
-        <input type="radio" id="student" name="role" value="student" required>
+        <input type="radio" id="student" name="role" value="student" checked required>
         <label for="student">Student</label>
         <input type="radio" id="teacher" name="role" value="professor" required>
         <label for="teacher">Professor</label>
@@ -35,10 +35,11 @@
         <input
           type="text"
           id="first-name"
-          name="firstName"
+          name="FirstName"
           autocomplete="given-name"
           required
           autofocus
+          
         >
         <span id="first-name-error" class="field-error" hidden></span>
       </div>
@@ -48,6 +49,7 @@
         <label for="middle-name">Middle name</label>
         <input
           type="text"
+          placeholder="(Optional)"
           id="middle-name"
           name="middleName"
           autocomplete="additional-name"
