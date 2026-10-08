@@ -21,7 +21,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '3eaaa86c-b7dc-11f1-b549-f4b52067a2c9:1-21';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '3eaaa86c-b7dc-11f1-b549-f4b52067a2c9:1-22';
 
 --
 -- Current Database: `quizdb`
@@ -140,15 +140,13 @@ DROP TABLE IF EXISTS `users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `UserID` int NOT NULL AUTO_INCREMENT,
-  `UserName` varchar(255) NOT NULL,
   `First_Name` varchar(255) NOT NULL,
   `Middle_Name` varchar(255) DEFAULT 'N/A',
   `Last_Name` varchar(255) NOT NULL,
   `Email` varchar(255) NOT NULL,
   `Password` varchar(255) NOT NULL,
   `Role` varchar(255) DEFAULT 'N/A',
-  PRIMARY KEY (`UserID`),
-  UNIQUE KEY `UnqUserName` (`UserName`)
+  PRIMARY KEY (`UserID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -158,7 +156,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (69,'IBG','','N/A','','IBG@gmail.com','BoyBawang','0');
+INSERT INTO `users` VALUES (69,'','N/A','','IBG@gmail.com','BoyBawang','0');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
@@ -172,4 +170,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-02 18:21:49
+-- Dump completed on 2026-10-08 17:06:36
