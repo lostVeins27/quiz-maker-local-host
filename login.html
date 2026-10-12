@@ -7,6 +7,7 @@
     <meta name="author" content="Zion, Daniel, Isel" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
+    <linl rel="stylesheet" href="style.css"></linl>
   </head>
 
   <body>
@@ -19,22 +20,22 @@
       </div>
 
       <div>
-        <label for="username">Username</label>
+        <label for="email">Email</label><br>
         <input
-          type="text"
-          id="username"
-          name="username"
-          autocomplete="username"
+          type="email"
+          id="email"
+          name="email"
+          autocomplete="email"
           autocapitalize="none"
           spellcheck="false"
           required
           autofocus
         />
-        <span id="username-error" class="field-error" hidden></span>
+        <span id="email-error" class="field-error" hidden></span>
       </div>
 
       <div>
-        <label for="password">Password</label>
+        <label for="password">Password</label><br>
         <input
           type="password"
           id="password"

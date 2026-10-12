@@ -1,4 +1,4 @@
-//change this to the real signup endpoint
+//change this to the signup endpoint
 const SIGNUP_URL = "/api/signup";
 
 //Where to go after the account is created, based on the selected role
@@ -18,7 +18,6 @@ const firstNameInput = document.getElementById("first-name");
 const middleNameInput = document.getElementById("middle-name");
 const lastNameInput = document.getElementById("last-name");
 const emailInput = document.getElementById("email");
-const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirm-password");
 
@@ -59,7 +58,6 @@ function clearAllErrors() {
   clearFieldError(middleNameInput, "middle-name-error");
   clearFieldError(lastNameInput, "last-name-error");
   clearFieldError(emailInput, "email-error");
-  clearFieldError(usernameInput, "username-error");
   clearFieldError(passwordInput, "password-error");
   clearFieldError(confirmPasswordInput, "confirm-password-error");
 }
@@ -75,7 +73,6 @@ function getSelectedRole() {
 // Letters, spaces, apostrophes, periods and hyphens
 const namePattern = /^\p{L}[\p{L}\s'.-]*$/u;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const usernamePattern = /^[A-Za-z0-9._-]{3,30}$/;
 
 //Returns an error message, or "" if the role is fine
 function checkRole(value) {
@@ -107,19 +104,11 @@ function checkEmail(value) {
   if (value === "") {
     return "Email address is required.";
   }
+  if (value.length > 254) {
+    return "Email address must be 254 characters or fewer.";
+  }
   if (!emailPattern.test(value)) {
     return "Please enter a valid email address.";
-  }
-  return "";
-}
-
-//Returns an error message, or "" if the username is fine
-function checkUsername(value) {
-  if (value === "") {
-    return "Username is required.";
-  }
-  if (!usernamePattern.test(value)) {
-    return "Username must be 3 to 30 characters: letters, numbers, dots, underscores, or hyphens.";
   }
   return "";
 }
@@ -166,7 +155,6 @@ function validateForm() {
     { input: middleNameInput, errorId: "middle-name-error", error: middleNameInput.value.trim() === "" ? "" : checkName(middleNameInput.value.trim(), "Middle name") },
     { input: lastNameInput, errorId: "last-name-error", error: checkName(lastNameInput.value.trim(), "Last name") },
     { input: emailInput, errorId: "email-error", error: checkEmail(emailInput.value.trim()) },
-    { input: usernameInput, errorId: "username-error", error: checkUsername(usernameInput.value.trim()) },
     { input: passwordInput, errorId: "password-error", error: checkPassword(passwordInput.value) },
     { input: confirmPasswordInput, errorId: "confirm-password-error", error: checkConfirmPassword(passwordInput.value, confirmPasswordInput.value) }
   ];
@@ -226,9 +214,6 @@ lastNameInput.addEventListener("input", function () {
 emailInput.addEventListener("input", function () {
   clearFieldError(emailInput, "email-error");
 });
-usernameInput.addEventListener("input", function () {
-  clearFieldError(usernameInput, "username-error");
-});
 passwordInput.addEventListener("input", function () {
   clearFieldError(passwordInput, "password-error");
 });
@@ -248,14 +233,12 @@ form.addEventListener("submit", async function (event) {
   }
 
   //Data to send to the server
-  //JSON object obtaining the signup data
   const userData = {
     role: getSelectedRole(),
     firstName: firstNameInput.value.trim(),
     middleName: middleNameInput.value.trim(),
     lastName: lastNameInput.value.trim(),
-    email: emailInput.value.trim(),
-    username: usernameInput.value.trim(),
+    email: emailInput.value.trim().toLowerCase(),
     password: passwordInput.value
   };
 
@@ -264,7 +247,6 @@ form.addEventListener("submit", async function (event) {
   signupButton.textContent = "Creating account...";
 
   //sends a POST request with JSON data to the signup API
-  //converts the JAVASCRIPT object into JSON string using JSON.stringify()
   try {
     const response = await fetch(SIGNUP_URL, {
       method: "POST",

@@ -1,9 +1,9 @@
 //Get the elements from the HTML
 const loginForm = document.getElementById("login-form");
 const loginMessage = document.getElementById("login-message");
-const usernameInput = document.getElementById("username");
+const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
-const usernameError = document.getElementById("username-error");
+const emailError = document.getElementById("email-error");
 const passwordError = document.getElementById("password-error");
 const togglePasswordBtn = document.getElementById("toggle-password");
 const loginButton = document.getElementById("login-button");
@@ -43,18 +43,27 @@ function clearFieldError(input, errorElement) {
   input.removeAttribute("aria-invalid");
 }
 
+// Simple email format check (same rule as the signup page)
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // Check the inputs. Returns true if everything is valid.
 function validateForm() {
   let isValid = true;
+  let emailHasError = false;
 
-  const username = usernameInput.value.trim();
+  const email = emailInput.value.trim();
   const password = passwordInput.value;
 
-  clearFieldError(usernameInput, usernameError);
+  clearFieldError(emailInput, emailError);
   clearFieldError(passwordInput, passwordError);
 
-  if (username === "") {
-    showFieldError(usernameInput, usernameError, "Please enter your username.");
+  if (email === "") {
+    showFieldError(emailInput, emailError, "Please enter your email address.");
+    emailHasError = true;
+    isValid = false;
+  } else if (!emailPattern.test(email)) {
+    showFieldError(emailInput, emailError, "Please enter a valid email address.");
+    emailHasError = true;
     isValid = false;
   }
 
@@ -64,8 +73,8 @@ function validateForm() {
   }
 
   // Focus the first field that has a problem
-  if (username === "") {
-    usernameInput.focus();
+  if (emailHasError) {
+    emailInput.focus();
   } else if (password === "") {
     passwordInput.focus();
   }
@@ -89,8 +98,8 @@ togglePasswordBtn.addEventListener("click", function () {
 });
 
 // ----- Clear errors while the user is typing -----
-usernameInput.addEventListener("input", function () {
-  clearFieldError(usernameInput, usernameError);
+emailInput.addEventListener("input", function () {
+  clearFieldError(emailInput, emailError);
   hideMessage();
 });
 
@@ -108,7 +117,8 @@ loginForm.addEventListener("submit", async function (event) {
     return;
   }
 
-  const username = usernameInput.value.trim();
+  // Emails are not case-sensitive for login, so send them in lowercase
+  const email = emailInput.value.trim().toLowerCase();
   const password = passwordInput.value;
 
   // Disable the button so the user can't click it twice
@@ -122,7 +132,7 @@ loginForm.addEventListener("submit", async function (event) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: username,
+        email: email,
         password: password,
       }),
     });
@@ -139,7 +149,7 @@ loginForm.addEventListener("submit", async function (event) {
       showMessage("Login successful! Redirecting...", "success");
       window.location.href = REDIRECT_URL;
     } else if (response.status === 401 || response.status === 400) {
-      showMessage(data.message || "Incorrect username or password.", "error");
+      showMessage(data.message || "Incorrect email or password.", "error");
       passwordInput.value = "";
       passwordInput.focus();
     } else {
