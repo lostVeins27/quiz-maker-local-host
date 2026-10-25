@@ -32,8 +32,8 @@ def init_db():
         INSERT INTO users (first_name, middle_name, last_name, email, password, role)
         VALUES 
             ('John', 'M', 'Doe', 'email@example.com', 'passwordtesting', 'student'),
-            ('Daniel', 'D', 'Maninang', 'doquillodaniel@gmail.com', 'lolomopanot', 'student'),
-            ('Daniel', 'D', 'Maninang', 'ddoquillo@gmail.com', 'lolomopanot', 'professor')
+            ('Daniel', 'D', 'Maninang', 'doquillodaniel@gmail.com', '123', 'student'),
+            ('Daniel', 'D', 'Maninang', 'ddoquillo@gmail.com', '123', 'professor')
         """)
         print("Test user inserted successfully!")
         
@@ -97,9 +97,8 @@ def login_page():
             return jsonify ({"success": True})
         else:
             return jsonify(
-                {"success": False, "message": "Invalid Email or Password."},
-                400,
-            )
+                {"success": False, "message": "Invalid Email or Password."}
+            ), 400
 
     else:
         return render_template("login.html")
