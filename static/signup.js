@@ -1,5 +1,5 @@
 //change this to the signup endpoint
-const SIGNUP_URL = "/api/signup";
+const SIGNUP_URL = "/signup";
 
 //Where to go after the account is created, based on the selected role
 const DASHBOARDS = {
@@ -117,18 +117,6 @@ function checkEmail(value) {
 function checkPassword(value) {
   if (value === "") {
     return "Password is required.";
-  }
-  if (value.length < 8) {
-    return "Password must be at least 8 characters.";
-  }
-  if (!/[A-Z]/.test(value)) {
-    return "Password must have at least one uppercase letter.";
-  }
-  if (!/[a-z]/.test(value)) {
-    return "Password must have at least one lowercase letter.";
-  }
-  if (!/[0-9]/.test(value)) {
-    return "Password must have at least one number.";
   }
   return "";
 }
@@ -265,7 +253,7 @@ form.addEventListener("submit", async function (event) {
     //if the server responds with a success status, redirect to the dashboard for the selected role
     if (response.ok) {
       showMessage("Account created! Redirecting to your dashboard...", "success");
-      window.location.href = DASHBOARDS[userData.role];
+      window.location.href = "/users";
     }
     //if the server responds with an error status, show the error message
     else {

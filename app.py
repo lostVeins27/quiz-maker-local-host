@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, jsonify
 import sqlite3
 
 app = Flask(__name__)
@@ -55,28 +55,48 @@ def signup_page():
 
     if request.method == "POST":
 
-        first_name = request.form["firstName"]
-        middle_name = request.form["middleName"]
-        last_name = request.form["lastName"]
-        email = request.form["email"]
-        password = request.form["password"]
-        role = request.form["role"]
+        data = request.get_json()
+        if not data:
+            return(
+                jsonify({"success": False, "message": "Invalid submission data"}),
+                400,
+            )
+
+        first_name = data.get("firstName")
+        middle_name = data.get("middleName")
+        if not middle_name:
+            middle_name = "N/A"
+        last_name = data.get("lastName")
+        email = data.get("email")
+        password = data.get("password")
+        role = data.get("role")
+
+        print(f"--- DEBUG --- Received email: {email}")
 
         conn = sqlite3.connect("quizdb.db")
         cursor = conn.cursor()
 
         cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
-        if not cursor.fetchone():
-            cursor.execute("""
+        existing_user = cursor.fetchone()
+
+
+        print(f"--- DEBUG --- Database query result: {existing_user}")
+
+
+        if existing_user:
+            conn.close()
+            return jsonify({"success": False, "message": "Email already exists!"}), 400
+
+        cursor.execute("""
                 INSERT INTO users (first_name, middle_name, last_name, email, password, role)
                 VALUES (?, ?, ?, ?, ?, ?)
             """,
             (first_name, middle_name, last_name, email, password, role),)
-
+        
         conn.commit()
         conn.close()
 
-        return redirect(url_for("view_users"))
+        return jsonify({"success": True})
         
     else:
         return render_template("signup.html")
