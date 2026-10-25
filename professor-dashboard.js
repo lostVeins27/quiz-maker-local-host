@@ -5,21 +5,21 @@ const resultBtn = document.getElementById("resultBtn");
 
 //create quiz page redirect
 createQuizBtn.addEventListener("click", function () {
-  window.location.href = "create-quiz.html";
+  window.location.href = "professor-dashboard/create-quiz.html";
 });
 
 //manage quiz page redirect
 manageQuizBtn.addEventListener("click", function () {
-  window.location.href = "manage-quiz.html";
+  window.location.href = "professor-dashboard/manage-quiz.html";
 });
 
 //start quiz page redirect
 startQuizBtn.addEventListener("click", function () {
-  window.location.href = "start-quiz.html";
+  window.location.href = "professor-dashboard/start-quiz.html";
 });
 
 //result page redirect
 resultBtn.addEventListener("click", function () {
-  window.location.href = "results.html";
+  window.location.href = "professor-dashboard/results.html";
 });
 
