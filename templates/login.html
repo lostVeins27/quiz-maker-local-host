@@ -13,7 +13,7 @@
   <body>
     <div id="login-message" role="alert" aria-live="polite" hidden></div>
 
-    <form id="login-form" novalidate>
+    <form id="login-form" novalidate method="post">
       <div>
         <h1>Welcome to Quiz-Maker</h1>
         <p>Log in to your account.</p>
@@ -60,9 +60,9 @@
 
     <p>
       Don't have an account?
-      <a href="{{ url_for('signup_page') }}" id="signup-link">Sign up</a>
+      <a href="/signup" id="signup-link">Sign up</a>
     </p>
 
-    <script src="{{ url_for('static', filename='login.js') }}" defer></script>
+    <!--<script src="{{ url_for('static', filename='login.js') }}" defer></script> -->
   </body>
 </html>
