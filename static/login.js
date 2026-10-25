@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
 
         if (res.ok && data.success) {
-          window.location.href = data.redirect;
+          window.location.href = "/dashboard";
         } else {
           if (message) {
             message.textContent = data.message || "Invalid credentials";

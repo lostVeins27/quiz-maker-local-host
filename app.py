@@ -1,7 +1,9 @@
-from flask import Flask, render_template, redirect, url_for, request, jsonify
+from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 import sqlite3
 
 app = Flask(__name__)
+app.secret_key = "asdfasdfasdfgsjhdafgjkxcgvjasdouryehrkjshdf"
+
 
 def init_db():
     """Automatically creates the database table and test user if they don't exist"""
@@ -28,13 +30,33 @@ def init_db():
     if not cursor.fetchone():
         cursor.execute("""
         INSERT INTO users (first_name, middle_name, last_name, email, password, role)
-        VALUES ('John', 'M', 'Doe', 'email@example.com', 'passwordtesting', 'Student')
+        VALUES 
+            ('John', 'M', 'Doe', 'email@example.com', 'passwordtesting', 'student'),
+            ('Daniel', 'D', 'Maninang', 'doquillodaniel@gmail.com', 'lolomopanot', 'student'),
+            ('Daniel', 'D', 'Maninang', 'ddoquillo@gmail.com', 'lolomopanot', 'professor')
         """)
         print("Test user inserted successfully!")
         
     conn.commit()
     conn.close()
 
+
+def get_current_user():
+    if "user_email" not in session:
+        return None
+
+    conn = sqlite3.connect("quizdb.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT * FROM users where email = ?", (session["user_email"],)
+    )
+    user = cursor.fetchone()
+    conn.close()
+
+    return user
+    
 
 
 @app.route("/")
@@ -45,8 +67,40 @@ def home():
 def login_page():
 
     if request.method == "POST":
-        name = request.form["email"]
-        return redirect(url_for("dashboard", name = "testing"))
+
+
+        data = request.get_json()
+
+        if not data:
+            return (
+                jsonify({"success": False, "message": "Invalid Login Data."}),
+                400,
+            )
+
+
+        email = data.get("email", "").strip().lower()
+        password = data.get("password")
+
+        conn = sqlite3.connect("quizdb.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM users WHERE email = ? ", (email,))
+        user = cursor.fetchone()
+        conn.close()
+
+
+        if user and user["password"] == password:
+            session["user_email"] = user["email"]
+            session["role"] = user["role"]
+
+            return jsonify ({"success": True})
+        else:
+            return jsonify(
+                {"success": False, "message": "Invalid Email or Password."},
+                400,
+            )
+
     else:
         return render_template("login.html")
 
@@ -101,10 +155,31 @@ def signup_page():
     else:
         return render_template("signup.html")
 
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login_page"))
+
 @app.route("/dashboard")
 def dashboard():
 
-    return render_template("professor_dashboard.html", name = "Guest")
+    if "role" not in session:
+        return redirect(url_for("login_page"))
+
+    user_role = session.get("role")
+
+    user = get_current_user()
+
+    match user_role:
+        case "student":
+            return render_template("student_dashboard.html", user = user)
+        case "professor":
+            return render_template("professor_dashboard.html", user = user)
+        case _:
+            return "Unauthorized role", 403
+
+
 
 @app.route("/users")
 def view_users():
@@ -121,7 +196,7 @@ def view_users():
     for user in all_users:
         # user[1] = first_name, user[2] = last_name, user[3] = email, user[4] = role
         html += (
-            f"<li><strong>{user[1]} {user[2]}</strong> — {user[3]} ({user[4]}) password = {user[5]}</li> "
+            f"<li><strong>{user[0]} {user[1]} {user[2]}</strong> — {user[3]} ({user[4]}) password = {user[5]}</li> "
         )
     html += "</ul><br><a href='/login'>Go to Login</a> </ul><br><a href='/signup'>Go to Signup</a>"
 
