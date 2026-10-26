@@ -32,8 +32,8 @@ def init_db():
         INSERT INTO users (first_name, middle_name, last_name, email, password, role)
         VALUES 
             ('John', 'M', 'Doe', 'email@example.com', 'passwordtesting', 'student'),
-            ('Daniel', 'D', 'Maninang', 'doquillodaniel@gmail.com', '123', 'student'),
-            ('Daniel', 'D', 'Maninang', 'ddoquillo@gmail.com', '123', 'professor')
+            ('Daniel', 'D', 'Maninang', 'student@gmail.com', '123', 'student'),
+            ('Daniel', 'D', 'Maninang', 'professor@gmail.com', '123', 'professor')
         """)
         print("Test user inserted successfully!")
         
@@ -65,6 +65,9 @@ def home():
 
 @app.route("/login", methods = ["GET", "POST"])
 def login_page():
+
+    if "email" in session:
+        return redirect(url_for("dashboard"))
 
     if request.method == "POST":
 
