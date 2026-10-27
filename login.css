@@ -1,0 +1,56 @@
+/* center the whole page content */
+#main-logn-page {
+  max-width: 448px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+/* heading block: normal block so the h1 and p stack and stay centered */
+#login-header {
+  display: block;
+  margin-bottom: 16px;
+}
+
+/* each field row: left space | input (20 characters) | button space */
+#email-field,
+#password-field {
+  display: grid;
+  grid-template-columns: 1fr 20ch 1fr;
+  gap: 6.4px 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* labels and error messages take the full width and are centered */
+label[for="email"],
+label[for="password"],
+#email-error,
+#password-error {
+  grid-column: 1 / -1;
+}
+
+/* inputs are 20 characters wide, in the middle column */
+#email,
+#password {
+  grid-column: 2;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* the Show button sits to the right of the password input */
+#toggle-password {
+  grid-column: 3;
+  justify-self: start;
+}
+
+/* error messages in red */
+.field-error {
+  color: #b00020;
+  font-size: 14px;
+}
+
+/* keep hidden errors hidden */
+.field-error[hidden] {
+  display: none;
+}
