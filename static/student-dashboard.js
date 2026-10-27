@@ -1,6 +1,7 @@
 const QuizListBtn = document.getElementById("QuizListBtn");
 const TakeQuizBtn = document.getElementById("TakeQuizBtn");
 const ResultBtn = document.getElementById("ResultBtn");
+const LogoutBtn = document.getElementById("LogoutBtn");
 
 //Quiz list page redirect
 QuizListBtn.addEventListener("click", function () {
@@ -15,4 +16,9 @@ TakeQuizBtn.addEventListener("click", function () {
 //result page redirect
 ResultBtn.addEventListener("click", function () {
   window.location.href = "student_dashboard/Results.html";
+});
+
+//logout redirect
+LogoutBtn.addEventListener("click", function () {
+  window.location.href = "/logout";
 });

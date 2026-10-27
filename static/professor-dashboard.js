@@ -2,6 +2,7 @@ const createQuizBtn = document.getElementById("createQuizBtn");
 const manageQuizBtn = document.getElementById("manageQuizBtn");
 const startQuizBtn = document.getElementById("startQuizBtn");
 const resultBtn = document.getElementById("resultBtn");
+const logoutBtn = document.getElementById("LogoutBtn")
 
 //create quiz page redirect
 createQuizBtn.addEventListener("click", function () {
@@ -22,4 +23,10 @@ startQuizBtn.addEventListener("click", function () {
 resultBtn.addEventListener("click", function () {
   window.location.href = "results.html";
 });
+
+//logout page redirect
+logoutBtn.addEventListener("click", function () {
+  window.location.href = "/logout";
+});
+
 

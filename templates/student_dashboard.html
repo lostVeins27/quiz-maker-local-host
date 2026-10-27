@@ -7,14 +7,15 @@
 </head>
 <body>
 
-  <h1>Hello {{user.first_name}} {{user.last_name}}</h1>
+  <h1>Student Dashboard</h1>
   
   <div class="button-link-containers">
     <button type="button" id="QuizListBtn">Quiz list</button>
     <button type="button" id="TakeQuizBtn">Take quiz</button>
     <button type="button" id="ResultBtn">Results</button>
+    <button type="button" id="LogoutBtn">Logout</button>
   </div>
 
-  <!--script src="student-dashboard.js"></script-->
+  <script src="{{ url_for('static', filename='student-dashboard.js')}}"></script>
 </body>
 </html>
