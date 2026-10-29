@@ -66,7 +66,7 @@ def home():
 @app.route("/login", methods = ["GET", "POST"])
 def login_page():
 
-    if "email" in session:
+    if "user_email" in session:
         return redirect(url_for("dashboard"))
 
     if request.method == "POST":
@@ -108,6 +108,9 @@ def login_page():
 
 @app.route("/signup", methods = ["GET", "POST"])
 def signup_page():
+
+    if "user_email" in session:
+            return redirect(url_for("dashboard"))
 
     if request.method == "POST":
 
