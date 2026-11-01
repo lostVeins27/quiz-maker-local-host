@@ -1,7 +1,7 @@
 const QuizListBtn = document.getElementById("QuizListBtn");
 const TakeQuizBtn = document.getElementById("TakeQuizBtn");
 const ResultBtn = document.getElementById("ResultBtn");
-const LogoutBtn = document.getElementById("LogoutBtn");
+const LogoutBtn = document.getElementById("logoutBtn");
 
 //Quiz list page redirect
 QuizListBtn.addEventListener("click", function () {

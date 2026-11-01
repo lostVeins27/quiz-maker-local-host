@@ -178,9 +178,9 @@ def dashboard():
 
     match user_role:
         case "student":
-            return render_template("student_dashboard.html", user = user)
+            return render_template("student-dashboard.html", user = user)
         case "professor":
-            return render_template("professor_dashboard.html", user = user)
+            return render_template("professor-dashboard.html", user = user)
         case _:
             return "Unauthorized role", 403
 

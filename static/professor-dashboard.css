@@ -1,0 +1,119 @@
+
+
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --border: #d9dee8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/*Page*/
+#pageBody {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 24px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, "Segoe UI", Arial;
+}
+
+#pageTitle {
+  margin: 0;
+  font-size: 52px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/*Logout (upper right corner) */
+#logoutNav {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+}
+/*logout button style*/
+#logoutBtn {
+  padding: 8px 18px;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+/*when hovering your mouse on the logout button*/
+#logoutBtn:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+/*Container for the 4 main buttons (centered)*/
+#buttonContainer {
+  display: grid;
+  grid-template-columns: repeat(2, 290px);
+  gap: 16px;
+}
+
+/*Main buttons*/
+#createQuizBtn,
+#manageQuizBtn,
+#startQuizBtn,
+#resultBtn {
+  padding: 36px 24px;
+  font-size: 23px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--primary);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+/*when hovering your mouse on one of the 4 main buttons*/
+#createQuizBtn:hover,
+#manageQuizBtn:hover,
+#startQuizBtn:hover,
+#resultBtn:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+/*When a user presses one of these buttons, the button moves down by 1 pixel*/
+#createQuizBtn:active,
+#manageQuizBtn:active,
+#startQuizBtn:active,
+#resultBtn:active {
+  transform: translateY(1px);
+}
+
+/*Keyboard focus*/
+#logoutBtn:focus-visible,
+#createQuizBtn:focus-visible,
+#manageQuizBtn:focus-visible,
+#startQuizBtn:focus-visible,
+#resultBtn:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+/*Phones: one column*/
+@media (max-width: 480px) {
+  #buttonContainer {
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 340px;
+  }
+}

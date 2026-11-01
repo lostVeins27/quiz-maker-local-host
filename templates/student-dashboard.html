@@ -4,18 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Dashboard</title>
+  <link rel="stylesheet" href="{{url_for('static', filename='student-dashboard.css')}}">
 </head>
-<body>
+<body id="pageBody">
 
-  <h1>Student Dashboard</h1>
-  
-  <div class="button-link-containers">
+  <h1 id="pageTitle">Welcome {{user[1]}}</h1>
+
+  <nav id="logoutNav">
+    <button type="button" id="logoutBtn">Logout</button>
+  </nav>
+
+  <div id="buttonContainer">
     <button type="button" id="QuizListBtn">Quiz list</button>
     <button type="button" id="TakeQuizBtn">Take quiz</button>
     <button type="button" id="ResultBtn">Results</button>
-    <button type="button" id="LogoutBtn">Logout</button>
   </div>
 
-  <script src="{{ url_for('static', filename='student-dashboard.js')}}"></script>
+  <script src="{{url_for('static', filename='student-dashboard.js')}}"></script>
 </body>
 </html>
