@@ -4,19 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Professor Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="professor-dashboard.css">
 </head>
-<body>
+<body id="pageBody">
 
-  <h1>Professor Dashboard</h1>
-  
-  <div class="button-link-containers">
+  <h1 id="pageTitle">Professor Dashboard</h1>
+
+  <nav id="logoutNav">
+    <button type="button" id="logoutBtn">Logout</button>
+  </nav>
+
+  <div id="buttonContainer">
     <button type="button" id="createQuizBtn">Create Quiz</button>
     <button type="button" id="manageQuizBtn">Manage Quiz</button>
     <button type="button" id="startQuizBtn">Start Quiz</button>
     <button type="button" id="resultBtn">Results</button>
-    <button type="button" id="logoutBtn">Logout</button>
-</div>
+  </div>
 
   <script src="professor-dashboard.js"></script>
 </body>
