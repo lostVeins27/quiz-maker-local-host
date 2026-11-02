@@ -42,7 +42,7 @@
   right: 24px;
 }
 
-#LogoutBtn {
+#logoutBtn {
   padding: 8px 18px;
   font-size: 15px;
   color: var(--text);
@@ -53,7 +53,7 @@
   transition: background 0.2s, border-color 0.2s;
 }
 
-#LogoutBtn:hover {
+#logoutBtn:hover {
   background: #fee2e2;
   border-color: #f87171;
 }
@@ -99,7 +99,7 @@
 }
 
 /*Keyboard focus(for ex. press tab)*/
-#LogoutBtn:focus-visible,
+#logoutBtn:focus-visible,
 #QuizListBtn:focus-visible,
 #TakeQuizBtn:focus-visible,
 #ResultBtn:focus-visible {

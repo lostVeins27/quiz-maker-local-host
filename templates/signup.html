@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{url_for('static', filename='signup.css')}}"/>
   <title>Create an Account</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='signup.css')}}">
 </head>
 <body>
 
@@ -16,11 +16,11 @@
     <div id="signup-message" role="alert" aria-live="polite" hidden></div>
 
     <!--form of the elements of the signup page-->
-    <form id="signup-form" novalidate method="post">
+    <form id="signup-form" novalidate>
 
       <!--Radio button for student and teacher-->
 
-      <div>
+      <div id="role-field">
         <label for="role">I am a:</label>
         <input type="radio" id="student" name="role" value="student" checked required>
         <label for="student">Student</label>
@@ -30,12 +30,12 @@
       </div>
 
       <!--first name text-field-->
-      <div>
+      <div id="first-name-field">
         <label for="first-name">First name</label>
         <input
           type="text"
           id="first-name"
-          name="firstName"
+          name="FirstName"
           autocomplete="given-name"
           required
           autofocus
@@ -45,7 +45,7 @@
       </div>
       
       <!--middle name text-field-->
-      <div>
+      <div id="middle-name-field">
         <label for="middle-name">Middle name</label>
         <input
           type="text"
@@ -58,7 +58,7 @@
       </div>
 
       <!--last name text field-->
-      <div>
+      <div id="last-name-field">
         <label for="last-name">Last name</label>
         <input
           type="text"
@@ -71,7 +71,7 @@
       </div>
 
       <!--email address field (also used to log in)-->
-      <div>
+      <div id="email-field">
         <label for="email">Email address</label>
         <input
           type="email"
@@ -86,7 +86,7 @@
       </div>
 
       <!--password text-field-->
-      <div>
+      <div id="password-field">
         <label for="password">Password</label>
         <input
           type="password"
@@ -110,7 +110,7 @@
       </div>
 
       <!--confirm password text-field-->
-      <div>
+      <div id="confirm-password-field">
         <label for="confirm-password">Confirm password</label>
         <input
           type="password"
@@ -138,10 +138,10 @@
     <!--link to login page-->
     <p>
       Already have an account?
-      <a href="/login" id="signup-link">Log in</a>
+      <a href="/login" id="login-link">Log in</a>
     </p>
   </main>
 
-  <script src="{{ url_for('static', filename='signup.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='signup.js') }}"></script>
 </body>
 </html>
