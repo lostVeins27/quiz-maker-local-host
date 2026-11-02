@@ -8,19 +8,36 @@
 </head>
 <body id="pageBody">
 
-  <h1 id="pageTitle">Hello Professor {{user[1]}}!</h1>
+  <h1 id="pageTitle">Professor {{user[1]}}</h1>
 
   <nav id="logoutNav">
     <button type="button" id="logoutBtn">Logout</button>
   </nav>
 
   <div id="buttonContainer">
-    <button type="button" id="createQuizBtn">Create Quiz</button>
-    <button type="button" id="manageQuizBtn">Manage Quiz</button>
-    <button type="button" id="startQuizBtn">Start Quiz</button>
-    <button type="button" id="resultBtn">Results</button>
-  </div>
 
+    <button type="button" id="createQuizBtn">
+    <span>Create Quiz</span>
+    <div class="CreateQuiz"></div>
+    </button>
+
+    <button type="button" id="manageQuizBtn">
+       <span>Manage Quiz</span>
+       <div class="ManageQuizPixel"></div>
+    </button>
+
+    <button type="button" id="startQuizBtn">
+      <span>Start Quiz</span>
+      <div class="StartQuizPixel"></div>
+    </button>
+
+    <button type="button" id="resultBtn">
+      <span>Results</span>
+      <div class="ResultPixel"></div>
+    </button>
+
+</div>
+    
   <script src="{{url_for('static', filename='professor-dashboard.js')}}"></script>
 </body>
 </html>
