@@ -2,7 +2,7 @@ const createQuizBtn = document.getElementById("createQuizBtn");
 const manageQuizBtn = document.getElementById("manageQuizBtn");
 const startQuizBtn = document.getElementById("startQuizBtn");
 const resultBtn = document.getElementById("resultBtn");
-const logoutBtn = document.getElementById("LogoutBtn")
+const logoutBtn = document.getElementById("logoutBtn")
 
 //create quiz page redirect
 createQuizBtn.addEventListener("click", function () {

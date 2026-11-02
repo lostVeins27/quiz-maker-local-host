@@ -4,7 +4,6 @@ import sqlite3
 app = Flask(__name__)
 app.secret_key = "asdfasdfasdfgsjhdafgjkxcgvjasdouryehrkjshdf"
 
-
 def init_db():
     """Automatically creates the database table and test user if they don't exist"""
     conn = sqlite3.connect("quizdb.db")
