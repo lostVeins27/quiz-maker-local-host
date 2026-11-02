@@ -56,6 +56,7 @@
 #logoutBtn:hover {
   background: #fee2e2;
   border-color: #f87171;
+  transform: scale(1.1);
 }
 
 /*Container for the 4 main buttons (centered)*/
@@ -82,6 +83,37 @@
   transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
 }
 
+#createQuizBtn {
+   display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+#manageQuizBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+#startQuizBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+#resultBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
 /*when hovering your mouse on one of the 4 main buttons*/
 #createQuizBtn:hover,
 #manageQuizBtn:hover,
@@ -89,7 +121,10 @@
 #resultBtn:hover {
   background: var(--primary-dark);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  transform: scale(1.05);
 }
+
+
 
 /*When a user presses one of these buttons, the button moves down by 1 pixel*/
 #createQuizBtn:active,
@@ -116,4 +151,143 @@
     width: 100%;
     max-width: 340px;
   }
+}
+
+.CreateQuiz {
+    display: block;
+    width: 128px;
+    height: 128px;
+    background-image: url("Sprites/PaperPen/CreateQuiz.png");
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 384px 512px;
+}
+
+/* Animate only when hovering over Create Quiz */
+#createQuizBtn:hover .CreateQuiz {
+    animation: createQuizAnimate 1.1s steps(1, end) infinite;
+}
+
+@keyframes createQuizAnimate {
+    0%      { background-position: 0 0; }
+    9.09%   { background-position: -128px 0; }
+    18.18%  { background-position: -256px 0; }
+
+    27.27%  { background-position: 0 -128px; }
+    36.36%  { background-position: -128px -128px; }
+    45.45%  { background-position: -256px -128px; }
+
+    54.54%  { background-position: 0 -256px; }
+    63.63%  { background-position: -128px -256px; }
+    72.72%  { background-position: -256px -256px; }
+
+    81.81%  { background-position: 0 -384px; }
+    90.90%  { background-position: -128px -384px; }
+}
+
+.ManageQuizPixel {
+    display: block;
+    width: 128px;
+    height: 128px;
+
+    background-image: url("Sprites/PaperPen/ManageQuizPixel.png");
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 384px 512px;
+}
+
+/* Animate only when hovering over Manage Quiz */
+#manageQuizBtn:hover .ManageQuizPixel {
+    animation: manageQuizAnimate 1.1s steps(1, end) forwards;
+}
+
+@keyframes manageQuizAnimate {
+    0%       { background-position: 0 0; }
+    9.09%    { background-position: -128px 0; }
+    18.18%   { background-position: -256px 0; }
+
+    27.27%   { background-position: 0 -128px; }
+    36.36%   { background-position: -128px -128px; }
+    45.45%   { background-position: -256px -128px; }
+
+    54.54%   { background-position: 0 -256px; }
+    63.63%   { background-position: -128px -256px; }
+    72.72%   { background-position: -256px -256px; }
+
+    81.81%   { background-position: 0 -384px; }
+    90.90%   { background-position: -128px -384px; }
+    92.28%, 100% {
+    background-position: 0px -384px;
+}
+}
+
+.StartQuizPixel {
+    display: block;
+    width: 128px;
+    height: 128px;
+
+    background-image: url("Sprites/PaperPen/StartQuizPixel.png");
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 384px 512px;
+}
+
+/* Animate only when hovering over Manage Quiz */
+#startQuizBtn:hover .StartQuizPixel {
+    animation: startQuizAnimate 1.1s steps(1) infinite;
+}
+
+@keyframes startQuizAnimate {
+    0%       { background-position: 0 0; }
+    9.09%    { background-position: -128px 0; }
+    18.18%   { background-position: -256px 0; }
+
+    27.27%   { background-position: 0 -128px; }
+    36.36%   { background-position: -128px -128px; }
+    45.45%   { background-position: -256px -128px; }
+
+    54.54%   { background-position: 0 -256px; }
+    63.63%   { background-position: -128px -256px; }
+    72.72%   { background-position: -256px -256px; }
+
+    81.81%   { background-position: 0 -384px; }
+    90.90%   { background-position: -128px -384px; }
+}
+
+.ResultPixel {
+    display: block;
+    width: 128px;
+    height: 128px;
+
+    background-image: url("Sprites/PaperPen/ResultPixel.png");
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 512px 512px;
+}
+
+/* Animate only when hovering over Results */
+#resultBtn:hover .ResultPixel {
+    animation: resultAnimate 1.3s steps(1, end) forwards;
+}
+
+@keyframes resultAnimate {
+    0%       { background-position:    0px     0px; }
+    7.69%    { background-position: -128px     0px; }
+    15.38%   { background-position: -256px     0px; }
+    23.07%   { background-position: -384px     0px; }
+
+    30.76%   { background-position:    0px  -128px; }
+    38.45%   { background-position: -128px  -128px; }
+    46.14%   { background-position: -256px  -128px; }
+    53.83%   { background-position: -384px  -128px; }
+
+    61.52%   { background-position:    0px  -256px; }
+    69.21%   { background-position: -128px  -256px; }
+    76.90%   { background-position: -256px  -256px; }
+    84.59%   { background-position: -384px  -256px; }
+
+    92.28%   { background-position:    0px  -384px; }
+    92.28%, 100% {
+    background-position: 0px -384px;
+}
 }
