@@ -15,9 +15,20 @@
   </nav>
 
   <div id="buttonContainer">
-    <button type="button" id="QuizListBtn">Quiz list</button>
-    <button type="button" id="TakeQuizBtn">Take quiz</button>
-    <button type="button" id="ResultBtn">Results</button>
+    <button type="button" id="QuizListBtn">
+      <span>Quiz list</span>
+      <div class="QuizList"></div>
+    </button>
+
+    <button type="button" id="TakeQuizBtn">
+      <span>Take quiz</span>
+      <div class="TakeQuiz"></div>
+    </button>
+
+    <button type="button" id="ResultBtn">
+      <span>Results</span>
+      <div class="CheckResult"></div>
+    </button>
   </div>
 
   <script src="{{url_for('static', filename='student-dashboard.js')}}"></script>
