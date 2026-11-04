@@ -1,18 +1,85 @@
-/* center the whole page content */
+/*Signup page styles*/
+
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --border: #d9dee8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/*Page*/
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, "Segoe UI", Arial;
+}
+
+/*The card in the middle of the page*/
 #main-signup-page {
-  max-width: 28rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
+  width: 100%;
+  max-width: 448px;
+  padding: 40px 32px;
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/*Title and subtitle*/
+#main-signup-page h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+  font-weight: 600;
   text-align: center;
 }
 
-/* error messages in red */
-.field-error {
-  color: #b00020;
-  font-size: 0.875rem;
+#main-signup-page > p {
+  margin: 0 0 24px;
 }
 
-/* each field row: left space | input (20 characters) | button space */
+/*"Already have an account?" line at the bottom*/
+#main-signup-page > p:last-of-type {
+  margin: 24px 0 0;
+}
+
+/*Message box (signup.js writes into it)*/
+#signup-message {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+#signup-message[hidden] {
+  display: none;
+}
+
+/*Error messages in red*/
+.field-error {
+  color: #b00020;
+  font-size: 14px;
+}
+
+.field-error[hidden] {
+  display: none;
+}
+
+/*Each field row: left space | input (26 characters) | button space*/
 #first-name-field,
 #middle-name-field,
 #last-name-field,
@@ -20,13 +87,13 @@
 #password-field,
 #confirm-password-field {
   display: grid;
-  grid-template-columns: 1fr 20ch 1fr;
-  gap: 0.4rem 0.5rem;
+  grid-template-columns: 1fr 26ch 1fr;
+  gap: 6px 8px;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
 
-/* labels and error messages take the full width and are centered */
+/*Labels and error messages take the full width and are centered*/
 label[for="first-name"],
 label[for="middle-name"],
 label[for="last-name"],
@@ -42,7 +109,17 @@ label[for="confirm-password"],
   grid-column: 1 / -1;
 }
 
-/* inputs are 20 characters wide, in the middle column */
+label[for="first-name"],
+label[for="middle-name"],
+label[for="last-name"],
+label[for="email"],
+label[for="password"],
+label[for="confirm-password"],
+label[for="role"] {
+  font-weight: 500;
+}
+
+/*Inputs are 20 characters wide, in the middle column*/
 #first-name,
 #middle-name,
 #last-name,
@@ -51,29 +128,162 @@ label[for="confirm-password"],
 #confirm-password {
   grid-column: 2;
   width: 100%;
-  box-sizing: border-box;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.2s;
 }
 
-/* Show buttons sit to the right of their input */
+/*Show buttons*/
 #toggle-password,
 #toggle-confirm-password {
   grid-column: 3;
   justify-self: start;
+  padding: 8px 18px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
 }
 
-/* the Student / Professor radio row stays on one line (no grid) */
+/*when hovering your mouse on a Show button*/
+#toggle-password:hover,
+#toggle-confirm-password:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+/*The Student / Professor radio row stays on one line (no grid)*/
 #role-field {
   display: block;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
 
-/* radio error: on its own line under the radio buttons */
+#role-field input[type="radio"] {
+  margin: 0 6px 0 14px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+#role-field label[for="student"],
+#role-field label[for="teacher"] {
+  cursor: pointer;
+}
+
+/*Radio error: on its own line under the radio buttons*/
 #role-error {
   display: block;
-  margin-top: 0.4rem;
+  margin-top: 6px;
 }
 
-/* keep hidden errors hidden */
-.field-error[hidden] {
-  display: none;
+/*Main button*/
+#signup-button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px 24px;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--primary);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+/*when hovering your mouse on the main button*/
+#signup-button:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+/*When a user presses the main button, it moves down by 1 pixel*/
+#signup-button:active {
+  transform: translateY(1px);
+}
+
+/*Log in link*/
+#login-link {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+#login-link:hover {
+  color: var(--primary-dark);
+}
+
+/*Keyboard focus(for ex. press tab)*/
+#student:focus-visible,
+#teacher:focus-visible,
+#first-name:focus-visible,
+#middle-name:focus-visible,
+#last-name:focus-visible,
+#email:focus-visible,
+#password:focus-visible,
+#confirm-password:focus-visible,
+#toggle-password:focus-visible,
+#toggle-confirm-password:focus-visible,
+#signup-button:focus-visible,
+#login-link:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+#first-name:focus-visible,
+#middle-name:focus-visible,
+#last-name:focus-visible,
+#email:focus-visible,
+#password:focus-visible,
+#confirm-password:focus-visible {
+  border-color: var(--primary);
+}
+
+/*Phones: smaller card, inputs use the full width*/
+@media (max-width: 480px) {
+  #main-signup-page {
+    padding: 28px 20px;
+  }
+
+  #main-signup-page h1 {
+    font-size: 26px;
+  }
+
+  #password-field,
+  #confirm-password-field {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  #first-name-field,
+  #middle-name-field,
+  #last-name-field,
+  #email-field {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #first-name,
+  #middle-name,
+  #last-name,
+  #email {
+    grid-column: 1;
+  }
+
+  #password,
+  #confirm-password {
+    grid-column: 1;
+  }
+
+  #toggle-password,
+  #toggle-confirm-password {
+    grid-column: 2;
+  }
 }
