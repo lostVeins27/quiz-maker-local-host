@@ -21,7 +21,7 @@ startQuizBtn.addEventListener("click", function () {
 
 //result page redirect
 resultBtn.addEventListener("click", function () {
-  window.location.href = "results.html";
+  window.location.href = "/result";
 });
 
 //logout page redirect

@@ -206,6 +206,14 @@ def view_users():
 
     return html
 
+@app.route("/result")
+def result():
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("login_page"))
+    
+    return render_template("result.html", user=user)
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
