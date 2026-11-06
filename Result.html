@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="Result.css">
+</head>
+<body id="pageBody">
+    
+    <nav id="ToDashBoard">
+        <button type="button" id="backBtn">To Dashboard</button>
+    </nav>
+    
+    <div id="ActiveQuiz">
+        
+        <label id="activeQuizLabel">Current Active Quiz</label>
+        <label id="activeQuizName">No active quiz</label> 
+        <!-- THIS LINE ABOVE  (id="activeQuizName")  WILL DISPLAY THE ACTUAL QUIZ BEING ACTIVE 
+        SO ITO YUNG ILILINK SA IBANG FILE OR SOMETHING-->
+    </div>
+
+        <h1 id="resultsTitle">Results</h1>
+
+    <div id="resultsSummary">
+
+    <div class="resultItem">
+        <h2 id="submittedCount">0</h2>
+        <p>Number Submitted</p>
+    </div>
+
+    <div class="resultItem">
+        <h2 id="averageScore">0%</h2>
+        <p>Average Score</p>
+    </div>
+
+    <div class="resultItem">
+        <h2 id="timeRemaining">00:00</h2>
+        <p>Time Remaining</p>
+    </div>
+
+</div> 
+    
+    
+    <div id="studentResults">
+
+    <!-- Table Header -->
+    <div class="resultRow resultHeader">
+        <span>Name</span>
+        <span>Score</span>
+        <span>Time Finished</span>
+    </div>
+
+    <!-- Student Entry Part 
+         Temporary Entries Just To Show How It Would Look
+         Linking And Modifying This Part Is Up To You -->
+
+    <div class="resultRow">
+        <span>John Doe</span>
+        <span>18/20</span>
+        <span>10:25 AM</span>
+    </div>
+
+    <div class="resultRow">
+        <span>Jane Smith</span>
+        <span>20/20</span>
+        <span>10:30 AM</span>
+    </div>
+
+    <div class="resultRow">
+        <span>Alex Cruz</span>
+        <span>15/20</span>
+        <span>10:35 AM</span>
+    </div>
+
+</div>
+
+    <!-- We Should Probably Add A Double Check Sa End Early Button Pwedeng Ma-missclick Eh-->
+    <div id="EndRefresh">
+        <button type="button" id="endearlyBtn">End Early</button>
+        <button type="button" id="refreshBtn">Refresh</button>
+    </div>
+    
+</body>
+</html>
