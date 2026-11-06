@@ -5,50 +5,62 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Create Quiz</title>
-    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="{{url_for('static', filename='create-quiz.css')}}" />
   </head>
 
-  <body>
-    <main>
-      <h1>Create Quiz</h1>
+  <body id="page-body">
+    <main id="main-create-quiz-page">
+      <h1 id="page-title">Create Quiz</h1>
 
-      <form id="quiz-form" class="create-quiz-form" novalidate>
+      <!--notice shown by the JavaScript when saving is not connected yet-->
+      <p id="api-status-notice" hidden>
+        Saving is not connected to the backend yet, so your quiz will not be saved.
+      </p>
 
-        <fieldset class="quiz-information">
-          <legend>Quiz Information</legend>
+      <!--form of the elements of the create quiz page-->
+      <form id="quiz-form" novalidate>
 
-          <div class="form-field">
-            <label for="quiz-title">Quiz Title</label>
+        <!--box with the quiz title and description-->
+        <fieldset id="quiz-information">
+          <legend id="quiz-information-legend">Quiz Information</legend>
+
+          <!--quiz title text-field-->
+          <div id="quiz-title-field">
+            <label for="quiz-title" id="quiz-title-label">Quiz Title</label>
             <input type="text" id="quiz-title" name="quizTitle" />
             <p class="error-message" id="quiz-title-error"></p>
           </div>
 
-          <!-- Description or instructions for the students (optional). -->
-          <div class="form-field">
-            <label for="quiz-description">Description / Instructions</label>
+          <!--description or instructions for the students (optional)-->
+          <div id="quiz-description-field">
+            <label for="quiz-description" id="quiz-description-label">Description / Instructions</label>
             <textarea id="quiz-description" name="quizDescription" rows="4"></textarea>
           </div>
         </fieldset>
 
-          <section class="questions" aria-labelledby="questions-heading">
+        <!--questions part-->
+        <section id="questions-section" aria-labelledby="questions-heading">
 
           <h2 id="questions-heading">Questions</h2>
 
+          <!--the JavaScript adds each question box in here-->
           <div id="questions-container"></div>
 
-          <!-- Shown by the JavaScript when the quiz has no questions at all. -->
+          <!--error shown by the JavaScript when the quiz has no questions-->
           <p class="error-message" id="questions-error"></p>
 
-          <!-- type="button" means "do not submit the form". It only adds a question. -->
+          <!--add question button (type="button" so it does not submit the form)-->
           <button type="button" id="add-question-btn">Add Question</button>
         </section>
 
+        <!--save quiz button-->
         <button type="submit" id="save-quiz-btn">Save Quiz</button>
 
+        <!--message shown after pressing save (success, error or warning)-->
         <p id="form-message" role="status" aria-live="polite"></p>
       </form>
     </main>
 
-    <script src="create-quiz.js"></script>
+    <script src="{{ url_for('static', filename='create-quiz.js') }}" defer></script>
   </body>
 </html>

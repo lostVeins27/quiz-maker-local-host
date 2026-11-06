@@ -6,7 +6,7 @@ const logoutBtn = document.getElementById("logoutBtn")
 
 //create quiz page redirect
 createQuizBtn.addEventListener("click", function () {
-  window.location.href = "create-quiz.html";
+  window.location.href = "/create-quiz";
 });
 
 //manage quiz page redirect

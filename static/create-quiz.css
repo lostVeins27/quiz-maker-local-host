@@ -1,0 +1,365 @@
+/* Create Quiz page styles (same look as the dashboards). Ids = elements that appear once, classes = parts repeated in every question */
+
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --border: #d9dee8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/*Page*/
+#page-body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, "Segoe UI", Arial;
+}
+
+/*center the whole page content*/
+#main-create-quiz-page {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+#page-title {
+  margin: 0 0 24px;
+  font-size: 40px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/*notice when saving is not connected (the JavaScript hides it when it is)*/
+#api-status-notice {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+}
+
+/*white boxes: the quiz information box and each question box*/
+#quiz-information,
+.question {
+  min-width: 0;
+  margin: 0;
+  padding: 20px 24px 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/*titles on the top border of those boxes*/
+#quiz-information-legend,
+.question-number {
+  padding: 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/*quiz title field*/
+#quiz-title-field {
+  margin-bottom: 16px;
+}
+
+/*labels go above their text boxes*/
+#quiz-title-label,
+#quiz-description-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+/*all the text boxes*/
+#quiz-title,
+#quiz-description,
+.question-text,
+.choice-text,
+.identification-answer {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+/*big text boxes can only be made taller*/
+#quiz-description,
+.question-text {
+  resize: vertical;
+}
+
+/*questions part*/
+#questions-section {
+  margin-top: 32px;
+}
+
+#questions-heading {
+  margin: 0 0 16px;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+/*the question boxes go here, one under the other*/
+#questions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/*no questions yet: take no space*/
+#questions-container:empty {
+  display: none;
+}
+
+/*add question button (same style as the logout button on the dashboards)*/
+#add-question-btn {
+  padding: 8px 18px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+/*when hovering your mouse on the add question button*/
+#add-question-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+/*question text field*/
+.question-field {
+  margin-bottom: 16px;
+}
+
+.question-label,
+.identification-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+/*question type box (Multiple Choice / Identification), no border*/
+.question-type {
+  min-width: 0;
+  margin: 0 0 16px;
+  padding: 0;
+  border: none;
+}
+
+.question-type-legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.question-type-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 20px;
+  cursor: pointer;
+}
+
+/*radio buttons (question type and the correct answer of each choice)*/
+.question-type-radio,
+.choice-radio {
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/*multiple choice part: instruction line, then four rows (radio | letter | text box)*/
+.choices-hint {
+  margin: 0 0 12px;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.choice-letter {
+  min-width: 1.2em;
+  font-weight: 600;
+  text-align: center;
+}
+
+/*the choice text box fills the rest of the row*/
+.choice-text {
+  flex: 1;
+  min-width: 0;
+}
+
+/*remove question button (on the right, turns red when hovering)*/
+.remove-question-btn {
+  display: block;
+  margin: 16px 0 0 auto;
+  padding: 8px 18px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.remove-question-btn:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+/*error messages in red*/
+.error-message {
+  margin: 6px 0 0;
+  color: #b00020;
+  font-size: 14px;
+}
+
+/*empty error messages take no space*/
+.error-message:empty {
+  display: none;
+}
+
+/*save quiz button (same style as the dashboard buttons)*/
+#save-quiz-btn {
+  display: block;
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px 24px;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--primary);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+/*when hovering your mouse on the save quiz button*/
+#save-quiz-btn:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+/*When a user presses the save quiz button, it moves down by 1 pixel*/
+#save-quiz-btn:active {
+  transform: translateY(1px);
+}
+
+/*message under the form (the JavaScript sets data-status to success, error or warning)*/
+#form-message {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+#form-message:empty {
+  display: none;
+}
+
+#form-message[data-status="success"] {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+#form-message[data-status="error"] {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+#form-message[data-status="warning"] {
+  color: #92400e;
+  background: #fef3c7;
+  border-color: #fcd34d;
+}
+
+/*while saving, the JavaScript disables every input and button*/
+input:disabled,
+textarea:disabled,
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#save-quiz-btn:disabled:hover {
+  background: var(--primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/*keep hidden things hidden*/
+[hidden] {
+  display: none;
+}
+
+/*Keyboard focus(for ex. press tab)*/
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+#quiz-title:focus-visible,
+#quiz-description:focus-visible,
+.question-text:focus-visible,
+.choice-text:focus-visible,
+.identification-answer:focus-visible {
+  border-color: var(--primary);
+}
+
+/*Phones: less padding, smaller titles*/
+@media (max-width: 480px) {
+  #page-body {
+    padding: 16px;
+  }
+
+  #page-title {
+    font-size: 28px;
+  }
+
+  #questions-heading {
+    font-size: 22px;
+  }
+
+  #quiz-information,
+  .question {
+    padding: 16px;
+  }
+
+  /*question type options stack, one per line*/
+  .question-type-option {
+    display: flex;
+    margin-bottom: 8px;
+  }
+}

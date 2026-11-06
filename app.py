@@ -214,6 +214,15 @@ def result():
     
     return render_template("result.html", user=user)
 
+
+@app.route("/create-quiz")
+def create_quiz():
+
+    if "role" not in session or session["role"] != "professor":
+        return redirect(url_for("dashboard"))
+
+    return render_template("create-quiz.html")
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
