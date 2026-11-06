@@ -186,11 +186,12 @@ label[for="role"] {
 
 /*Main button*/
 #signup-button {
-  width: 100%;
-  margin-top: 8px;
+  display: block;
+  width: 26ch;
+  margin: 8px auto 0;
   padding: 14px 24px;
   font-family: inherit;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   color: #fff;
   background: var(--primary);

@@ -139,11 +139,12 @@ label[for="password"] {
 
 /*Main button (same style as the dashboard buttons)*/
 #login-button {
-  width: 100%;
-  margin-top: 8px;
+  display: block;
+  width: 26ch;
+  margin: 8px auto 0;
   padding: 14px 24px;
   font-family: inherit;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   color: #fff;
   background: var(--primary);
@@ -200,6 +201,9 @@ label[for="password"] {
     padding: 28px 20px;
   }
 
+  #login-button {
+    width: 100%;
+  }
   #login-form h1 {
     font-size: 26px;
   }
