@@ -183,6 +183,18 @@
   border-color: var(--primary-dark);
 }
 
+/*add question button is blue (same blue as the save quiz button)*/
+#add-question-btn {
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+#add-question-btn:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
 /*question text field*/
 .question-field {
   margin-bottom: 16px;
@@ -249,24 +261,24 @@
   min-width: 0;
 }
 
-/*remove question button (on the right, turns red when hovering)*/
+/*remove question button (red, on the right, darker red when hovering)*/
 .remove-question-btn {
   display: block;
   margin: 16px 0 0 auto;
   padding: 8px 18px;
   font-family: inherit;
   font-size: 15px;
-  color: var(--text);
-  background: var(--card);
-  border: 1px solid var(--border);
+  color: #fff;
+  background: #dc2626;
+  border: 1px solid #dc2626;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
 }
 
 .remove-question-btn:hover {
-  background: #fee2e2;
-  border-color: #f87171;
+  background: #b91c1c;
+  border-color: #b91c1c;
 }
 
 /*error messages in red*/
