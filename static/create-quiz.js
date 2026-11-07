@@ -4,6 +4,9 @@
 // The backend address the quiz is sent to (it must match the route in the backend).
 const QUIZ_API_ENDPOINT = "/create-quiz";
 
+// The page the Back to Dashboard button goes to (the backend shows the professor dashboard to professors).
+const DASHBOARD_URL = "/dashboard";
+
 // The four choice letters, used to build the A-D fields.
 const CHOICE_LABELS = ["A", "B", "C", "D"];
 
@@ -17,7 +20,6 @@ const QUESTION_TYPES = {
 const SAVE_BUTTON_TEXT = "Save Quiz";
 const SAVING_BUTTON_TEXT = "Saving...";
 
-// Find each element on the page once, then reuse these variables.
 const quizForm = document.getElementById("quiz-form");
 const titleInput = document.getElementById("quiz-title");
 const titleError = document.getElementById("quiz-title-error");
@@ -28,14 +30,13 @@ const addQuestionBtn = document.getElementById("add-question-btn");
 const saveQuizBtn = document.getElementById("save-quiz-btn");
 const apiStatusNotice = document.getElementById("api-status-notice");
 const formMessage = document.getElementById("form-message");
+const dashboardBtn = document.getElementById("dashboard-btn");
 
-// Goes up by one for every question added. It gives each question unique ids,so the radio buttons of different questions never affect each other.
 let questionUid = 0;
 
 // true while the quiz is being sent, so it can't be sent twice.
 let isSaving = false;
 
-// ---- Small helpers ----
 // Shows or hides an element.
 function setVisible(element, isVisible) {
   element.hidden = !isVisible;
@@ -59,6 +60,15 @@ function getQuestionType(questionElement) {
   return questionElement.querySelector('input[name^="type-"]:checked').value;
 }
 
+// ---- Questions ----
+// Class names used below (they are styled in create-quiz.css):
+// .question = the box of one whole question, .question-number = its "Question 1" title
+// .question-field, .question-label, .question-text = the question text box
+// .question-type, .question-type-legend, .question-type-option, .question-type-radio = the Multiple Choice / Identification picker
+// .multiple-choice-fields, .choices-hint, .choice, .choice-radio, .choice-letter, .choice-text = the A-D rows
+// .identification-fields, .identification-label, .identification-answer = the identification answer
+// .remove-question-btn = the Remove button, .error-message = the red error lines
+// Builds the HTML for one new question. The uid makes its ids and radio names unique.
 function createQuestionElement(uid) {
   // Makes the four A-D rows. Each row has a radio button (to mark the correct answer)
   // and a text box. The four radios share one name, so only one can be picked.
@@ -435,6 +445,11 @@ quizForm.addEventListener("input", () => {
 
 // Save Quiz button (or the Enter key).
 quizForm.addEventListener("submit", handleQuizSubmit);
+
+// Back to Dashboard button.
+dashboardBtn.addEventListener("click", () => {
+  window.location.href = "/dashboard";
+});
 
 // When the page loads, show the "not connected" notice only if no address is set.
 setVisible(apiStatusNotice, !QUIZ_API_ENDPOINT);
