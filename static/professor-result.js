@@ -28,7 +28,7 @@ const QUIZ_LIST_PAGE_URL = "/result-main";
 // ---- Simulation (for testing without a backend) ----
 // true  = the page uses the sample quizzes below and never contacts the backend.
 // false = the page loads the real results using the address above.
-const USE_SAMPLE_DATA = true;
+const USE_SAMPLE_DATA = false;
 
 // The sample quizzes shown while USE_SAMPLE_DATA is true. The keys are the quiz ids from the quiz list.
 const SAMPLE_RESULTS = {
@@ -45,7 +45,7 @@ const SAMPLE_RESULTS = {
     results: [{ name: "Maria Santos", score: 1, total: 1, timeFinished: "9:12 AM" }],
   },
   3: {
-    quiz: { title: "Science Midterm Quiz", status: "ended", timeRemainingSeconds: 0 },
+    quiz: { title: "Science Midterm Quiz", status: "inactive", timeRemainingSeconds: 0 }, // Changed from "ended" to "inactive"
     results: [],
   },
 };
@@ -85,7 +85,7 @@ function showMessage(message, status) {
 
 // Writes "Active" or "Ended".
 function setStatus(status) {
-  quizStatus.textContent = status === "active" ? "Active" : "Ended";
+  quizStatus.textContent = status === "active" ? "Active" : "Inactive";
 }
 
 // Writes the time remaining as minutes:seconds, for example 09:05.
@@ -143,7 +143,7 @@ function normalizeResultsData(data) {
 
   return {
     title: String(quiz.title ?? ""),
-    status: String(quiz.status ?? "").toLowerCase() === "active" ? "active" : "ended",
+    status: String(quiz.status ?? "").toLowerCase() === "active" ? "active" : "inactive", // Map to "inactive"
     timeRemainingSeconds: Math.max(0, Math.floor(Number(quiz.timeRemainingSeconds)) || 0),
     results: results.map((result) => ({
       name: String(result.name ?? ""),

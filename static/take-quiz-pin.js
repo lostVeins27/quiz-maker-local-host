@@ -25,7 +25,7 @@ const CHECKING_BUTTON_TEXT = "Checking...";
 // true  = the page accepts the sample PINs below and never contacts the backend.
 // false = the page checks the PIN using the address above.
 // The sample PINs must match the keys of SAMPLE_QUIZZES in take-quiz.js.
-const USE_SAMPLE_DATA = true;
+const USE_SAMPLE_DATA = false;
 const SAMPLE_PINS = ["11111", "12345", "54321"];
 
 const pinForm = document.getElementById("pin-form");

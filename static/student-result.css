@@ -139,6 +139,21 @@ body {
   font-size: 1.0625rem;
 }
 
+.delete-result-btn {
+  padding: 0.5rem 1rem;
+  background: var(--color-red);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.delete-result-btn:hover {
+  background: var(--color-red-hover);
+}
+
 /*quiz row that can be clicked*/
 .quiz-row {
   cursor: pointer;

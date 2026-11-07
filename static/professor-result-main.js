@@ -27,7 +27,7 @@ function getResultDetailsUrl(quizId) {
 // ---- Simulation (for testing without a backend) ----
 // true  = the page uses the sample quizzes below and never contacts the backend.
 // false = the page loads the real quizzes using the address above.
-const USE_SAMPLE_DATA = true;
+const USE_SAMPLE_DATA = false;
 
 // The sample quizzes shown while USE_SAMPLE_DATA is true.
 const SAMPLE_QUIZZES = [

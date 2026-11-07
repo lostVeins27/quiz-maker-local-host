@@ -46,7 +46,7 @@ const SUBMITTING_BUTTON_TEXT = "Submitting...";
 // true  = the page uses the sample quizzes below and never contacts the backend.
 // false = the page loads and submits the quiz using the addresses above.
 // The keys are the PINs (they must match SAMPLE_PINS in take-quiz-pin.js).
-const USE_SAMPLE_DATA = true;
+const USE_SAMPLE_DATA = false;
 
 const SAMPLE_QUIZZES = {
   "11111": {

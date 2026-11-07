@@ -31,9 +31,21 @@ def init_db():
         description TEXT,
         professor_email TEXT,
         pin TEXT UNIQUE,
-        is_active INTEGER DEFAULT 0
+        is_active INTEGER DEFAULT 0,
+        duration_minutes INTEGER DEFAULT 0,
+        started_at TEXT
     )
     """)
+
+    # Safety check for existing tables
+    try:
+        cursor.execute("ALTER TABLE quiz ADD COLUMN duration_minutes INTEGER DEFAULT 0;")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE quiz ADD COLUMN started_at TEXT;")
+    except sqlite3.OperationalError:
+        pass
 
     # Create question table
     cursor.execute("""
@@ -59,6 +71,20 @@ def init_db():
     )
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS submission (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        quiz_id INTEGER,
+        student_email TEXT,
+        student_name TEXT,
+        score INTEGER,
+        total_points INTEGER,
+        time_taken INTEGER DEFAULT 0,
+        time_finished TEXT,
+        FOREIGN KEY (quiz_id) REFERENCES quiz(id) ON DELETE CASCADE
+    )
+    """)
+
     # Check if test user already exists, if not, insert them
     cursor.execute("SELECT * FROM users WHERE email = ?", ('email@example.com',))
     if not cursor.fetchone():
@@ -70,7 +96,33 @@ def init_db():
             ('Daniel', 'D', 'Maninang', 'professor@gmail.com', '123', 'professor')
         """)
         print("Test user inserted successfully!")
+
         
+        
+    conn.commit()
+    conn.close()
+
+def check_and_expire_quizzes():
+    """Automatically deactivates timed quizzes whose duration has elapsed."""
+    import datetime
+    conn = sqlite3.connect("quizdb.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, duration_minutes, started_at FROM quiz WHERE is_active = 1 AND duration_minutes > 0 AND started_at IS NOT NULL")
+    active_quizzes = cursor.fetchall()
+
+    now = datetime.datetime.now()
+    for q in active_quizzes:
+        try:
+            started = datetime.datetime.fromisoformat(q["started_at"])
+            duration = int(q["duration_minutes"])
+            expiry = started + datetime.timedelta(minutes=duration)
+            if now >= expiry:
+                cursor.execute("UPDATE quiz SET is_active = 0 WHERE id = ?", (q["id"],))
+        except Exception:
+            pass
+
     conn.commit()
     conn.close()
 
@@ -274,6 +326,8 @@ def api_get_quizzes():
     if "role" not in session or session["role"] != "professor":
         return jsonify({"success": False, "message": "Unauthorized"}), 403
 
+    check_and_expire_quizzes()
+
     conn = sqlite3.connect("quizdb.db")
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -299,11 +353,50 @@ def api_get_quizzes():
             "description": q["description"],
             "pin": pin,
             "isActive": bool(q["is_active"]),
+            "durationMinutes": q["duration_minutes"] or 0,
             "questionCount": q_count
         })
 
     conn.close()
     return jsonify({"success": True, "quizzes": result})
+
+@app.route("/quizzes", methods=["GET"])
+def get_professor_quizzes():
+    if "role" not in session or session["role"] != "professor":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    professor_email = session.get("user_email")
+    
+    try:
+        conn = sqlite3.connect("quizdb.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM quiz WHERE professor_email = ?", (professor_email,))
+        quizzes = cursor.fetchall()
+
+        quiz_list = []
+        for q in quizzes:
+            quiz_id = q["id"]
+            
+            # Count actual submissions for this quiz
+            cursor.execute("SELECT COUNT(*) as count FROM submission WHERE quiz_id = ?", (quiz_id,))
+            sub_row = cursor.fetchone()
+            submitted_count = sub_row["count"] if sub_row else 0
+
+            quiz_list.append({
+                "id": quiz_id,
+                "title": q["title"],
+                "submittedCount": submitted_count,
+                "isActive": bool(q["is_active"])
+            })
+
+        conn.close()
+        return jsonify({"success": True, "quizzes": quiz_list})
+
+    except Exception as e:
+        print(f"--- DEBUG ERROR in get_professor_quizzes --- {e}")
+        return jsonify({"success": False, "message": "Database error while loading results."}), 500
 
 @app.route("/api/quiz/<int:quiz_id>/toggle-active", methods=["POST"])
 def toggle_quiz_active(quiz_id):
@@ -312,10 +405,24 @@ def toggle_quiz_active(quiz_id):
 
     data = request.get_json() or {}
     is_active = 1 if data.get("isActive") else 0
+    duration_minutes = int(data.get("durationMinutes", 0)) if is_active else 0
 
     conn = sqlite3.connect("quizdb.db")
     cursor = conn.cursor()
-    cursor.execute("UPDATE quiz SET is_active = ? WHERE id = ?", (is_active, quiz_id))
+
+    if is_active:
+        import datetime
+        started_at = datetime.datetime.now().isoformat()
+        cursor.execute(
+            "UPDATE quiz SET is_active = 1, duration_minutes = ?, started_at = ? WHERE id = ?",
+            (duration_minutes, started_at, quiz_id)
+        )
+    else:
+        cursor.execute(
+            "UPDATE quiz SET is_active = 0, duration_minutes = 0, started_at = NULL WHERE id = ?",
+            (quiz_id,)
+        )
+
     conn.commit()
     conn.close()
 
@@ -405,6 +512,55 @@ def get_quiz_details(quiz_id):
             "questions": question_list
         }
     })
+
+@app.route("/quizzes/<int:quiz_id>/results", methods=["GET"])
+def get_quiz_results(quiz_id):
+    if "role" not in session or session["role"] != "professor":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    try:
+        conn = sqlite3.connect("quizdb.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM quiz WHERE id = ?", (quiz_id,))
+        quiz = cursor.fetchone()
+
+        if not quiz:
+            conn.close()
+            return jsonify({"success": False, "message": "Quiz not found."}), 404
+
+        is_active = bool(quiz["is_active"])
+        status_str = "active" if is_active else "inactive"
+
+        # Fetch actual submissions for this quiz
+        cursor.execute("SELECT student_name, score, total_points, time_finished FROM submission WHERE quiz_id = ?", (quiz_id,))
+        submissions = cursor.fetchall()
+
+        results_list = []
+        for sub in submissions:
+            results_list.append({
+                "name": sub["student_name"],
+                "score": sub["score"],
+                "total": sub["total_points"],
+                "timeFinished": sub["time_finished"]
+            })
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "quiz": {
+                "title": quiz["title"],
+                "status": status_str,
+                "timeRemainingSeconds": 600
+            },
+            "results": results_list
+        })
+
+    except Exception as e:
+        print(f"--- DEBUG ERROR in get_quiz_results --- {e}")
+        return jsonify({"success": False, "message": "Database error while loading results."}), 500
 
 @app.route("/quizzes/<int:quiz_id>", methods=["GET", "PUT", "DELETE"])
 def handle_quiz(quiz_id):
@@ -618,6 +774,235 @@ def take_quiz():
         return redirect(url_for("dashboard"))
 
     return render_template("take-quiz.html")
+
+# For Pin Function21234
+@app.route("/take-quiz/verify-pin", methods=["POST"])
+def verify_quiz_pin():
+    if "role" not in session or session["role"] != "student":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    check_and_expire_quizzes()
+
+    data = request.get_json() or {}
+    pin = data.get("pin", "").strip()
+
+    if not pin:
+        return jsonify({"success": False, "message": "PIN is required."}), 400
+
+    conn = sqlite3.connect("quizdb.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM quiz WHERE pin = ?", (pin,))
+    quiz = cursor.fetchone()
+    conn.close()
+
+    if not quiz:
+        return jsonify({"success": False, "message": "Invalid PIN. Quiz not found."}), 400
+
+    if not quiz["is_active"]:
+        return jsonify({"success": False, "message": "This quiz is currently inactive or has expired."}), 400
+
+    return jsonify({"success": True})
+
+
+@app.route("/take-quiz/load", methods=["POST"])
+def load_take_quiz():
+    if "role" not in session or session["role"] != "student":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    check_and_expire_quizzes()
+
+    data = request.get_json() or {}
+    pin = data.get("pin", "").strip()
+
+    if not pin:
+        return jsonify({"success": False, "message": "PIN is required."}), 400
+
+    conn = sqlite3.connect("quizdb.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM quiz WHERE pin = ?", (pin,))
+    quiz = cursor.fetchone()
+
+    if not quiz:
+        conn.close()
+        return jsonify({"success": False, "message": "Quiz not found."}), 404
+
+    if not quiz["is_active"]:
+        conn.close()
+        return jsonify({"success": False, "message": "This quiz is currently inactive or has expired."}), 403
+
+    import datetime
+    time_remaining_seconds = None
+    if quiz["duration_minutes"] and quiz["started_at"]:
+        try:
+            started = datetime.datetime.fromisoformat(quiz["started_at"])
+            duration_secs = int(quiz["duration_minutes"]) * 60
+            elapsed = (datetime.datetime.now() - started).total_seconds()
+            time_remaining_seconds = max(0, int(duration_secs - elapsed))
+            if time_remaining_seconds <= 0:
+                cursor.execute("UPDATE quiz SET is_active = 0 WHERE id = ?", (quiz["id"],))
+                conn.commit()
+                conn.close()
+                return jsonify({"success": False, "message": "This timed quiz has expired."}), 403
+        except Exception:
+            pass
+
+    quiz_id = quiz["id"]
+    cursor.execute("SELECT * FROM question WHERE quiz_id = ? ORDER BY question_number ASC", (quiz_id,))
+    questions = cursor.fetchall()
+
+    question_list = []
+    for q in questions:
+        q_id = q["id"]
+        q_type = q["type"]
+        if q_type == "multiple_choice":
+            q_type = "multiple-choice"
+
+        q_dict = {
+            "text": q["text"],
+            "type": q_type
+        }
+
+        if q_type == "multiple-choice":
+            cursor.execute("SELECT label, text FROM choice WHERE question_id = ? ORDER BY id ASC", (q_id,))
+            choices = cursor.fetchall()
+            q_dict["choices"] = [{"label": c["label"], "text": c["text"]} for c in choices]
+        else:
+            q_dict["choices"] = []
+
+        question_list.append(q_dict)
+
+    conn.close()
+    return jsonify({
+        "success": True,
+        "quiz": {
+            "title": quiz["title"],
+            "description": quiz["description"] or "",
+            "timeRemainingSeconds": time_remaining_seconds,
+            "questions": question_list
+        }
+    })
+
+@app.route("/take-quiz/submit", methods=["POST"])
+def submit_take_quiz():
+    if "role" not in session or session["role"] != "student":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    data = request.get_json() or {}
+    pin = data.get("pin", "").strip()
+    answers = data.get("answers", [])
+    student_email = session.get("user_email")
+
+    if not pin:
+        return jsonify({"success": False, "message": "PIN is required."}), 400
+
+    conn = sqlite3.connect("quizdb.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, title, is_active FROM quiz WHERE pin = ?", (pin,))
+    quiz = cursor.fetchone()
+
+    if not quiz:
+        conn.close()
+        return jsonify({"success": False, "message": "Quiz not found."}), 404
+
+    if not quiz["is_active"]:
+        conn.close()
+        return jsonify({"success": False, "message": "This quiz is no longer active."}), 403
+
+    quiz_id = quiz["id"]
+
+    cursor.execute("SELECT first_name, last_name FROM users WHERE email = ?", (student_email,))
+    user = cursor.fetchone()
+    student_name = f"{user['first_name']} {user['last_name']}" if user else student_email
+
+    cursor.execute("SELECT id, correct_answer, type FROM question WHERE quiz_id = ?", (quiz_id,))
+    questions = cursor.fetchall()
+    
+    score = 0
+    total_points = len(questions)
+
+    # Use a proper ISO format string for JavaScript Date compatibility
+    import datetime
+    time_finished = datetime.datetime.now().isoformat()
+
+    cursor.execute("""
+        INSERT INTO submission (quiz_id, student_email, student_name, score, total_points, time_finished)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (quiz_id, student_email, student_name, score, total_points, time_finished))
+
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route("/api/student/results", methods=["GET"])
+def get_student_results():
+    if "role" not in session or session["role"] != "student":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    student_email = session.get("user_email")
+
+    try:
+        conn = sqlite3.connect("quizdb.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # Fetch submissions for this specific student joined with the quiz title
+        cursor.execute("""
+            SELECT s.id, s.quiz_id, q.title as quizTitle, s.score, s.total_points as totalQuestions, 
+                   s.time_taken as timeTaken, s.time_finished as submittedAt
+            FROM submission s
+            JOIN quiz q ON s.quiz_id = q.id
+            WHERE s.student_email = ?
+            ORDER BY s.id DESC
+        """, (student_email,))
+        
+        rows = cursor.fetchall()
+        results = []
+        for row in rows:
+            results.append({
+                "id": row["id"],
+                "quizTitle": row["quizTitle"],
+                "score": row["score"],
+                "totalQuestions": row["totalQuestions"],
+                "timeTaken": row["timeTaken"],
+                "submittedAt": row["submittedAt"]
+            })
+
+        conn.close()
+        return jsonify(results)
+
+    except Exception as e:
+        print(f"--- DEBUG ERROR in get_student_results --- {e}")
+        return jsonify({"success": False, "message": "Database error."}), 500
+
+
+@app.route("/api/student/results/<int:result_id>", methods=["DELETE"])
+def delete_student_result(result_id):
+    if "role" not in session or session["role"] != "student":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    student_email = session.get("user_email")
+
+    try:
+        conn = sqlite3.connect("quizdb.db")
+        cursor = conn.cursor()
+
+        # Ensure the student only deletes their own submission record
+        cursor.execute("DELETE FROM submission WHERE id = ? AND student_email = ?", (result_id, student_email))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print(f"--- DEBUG ERROR in delete_student_result --- {e}")
+        return jsonify({"success": False, "message": "Database error while deleting."}), 500
+
 
 
 if __name__ == "__main__":
