@@ -31,11 +31,17 @@ const saveQuizBtn = document.getElementById("save-quiz-btn");
 const apiStatusNotice = document.getElementById("api-status-notice");
 const formMessage = document.getElementById("form-message");
 const dashboardBtn = document.getElementById("dashboard-btn");
+const saveConfirmDialog = document.getElementById("save-confirm-dialog");
+const saveConfirmYesBtn = document.getElementById("save-confirm-yes-btn");
+const saveConfirmNoBtn = document.getElementById("save-confirm-no-btn");
 
 let questionUid = 0;
 
 // true while the quiz is being sent, so it can't be sent twice.
 let isSaving = false;
+
+// The checked quiz that waits for the user to answer Yes or No in the pop up (null when nothing is waiting).
+let pendingQuizData = null;
 
 // Shows or hides an element.
 function setVisible(element, isVisible) {
@@ -370,8 +376,9 @@ function resetForm() {
   clearFormMessage();
 }
 
-// Runs when Save Quiz is pressed: read the form, check it, send it, show the result.
-async function handleQuizSubmit(event) {
+// Runs when Save Quiz is pressed: read the form, check it, then ask "Are you sure?" in the pop up.
+// Nothing is sent yet. The quiz is only sent if the user answers Yes (see saveQuiz below).
+function handleQuizSubmit(event) {
   // Stop the browser from reloading the page. We send the data ourselves.
   event.preventDefault();
 
@@ -384,6 +391,12 @@ async function handleQuizSubmit(event) {
     return;
   }
 
+  pendingQuizData = quizData;
+  saveConfirmDialog.showModal();
+}
+
+// Sends the checked quiz to the backend and shows the result. Runs only after the user answers Yes.
+async function saveQuiz(quizData) {
   setSavingState(true);
   showFormMessage("Saving quiz...", "warning");
 
@@ -445,6 +458,26 @@ quizForm.addEventListener("input", () => {
 
 // Save Quiz button (or the Enter key).
 quizForm.addEventListener("submit", handleQuizSubmit);
+
+// Pop up: Yes closes it and saves the quiz.
+saveConfirmYesBtn.addEventListener("click", () => {
+  const quizData = pendingQuizData;
+  saveConfirmDialog.close();
+
+  if (quizData && !isSaving) {
+    saveQuiz(quizData);
+  }
+});
+
+// Pop up: No closes it and nothing is saved (the form stays as it is).
+saveConfirmNoBtn.addEventListener("click", () => {
+  saveConfirmDialog.close();
+});
+
+// However the pop up closes (Yes, No or the Escape key), nothing waits for an answer anymore.
+saveConfirmDialog.addEventListener("close", () => {
+  pendingQuizData = null;
+});
 
 // Back to Dashboard button.
 dashboardBtn.addEventListener("click", () => {
