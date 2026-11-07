@@ -10,7 +10,7 @@ TakeQuizBtn.addEventListener("click", function () {
 
 //result page redirect
 ResultBtn.addEventListener("click", function () {
-  window.location.href = "student_dashboard/Results.html";
+  window.location.href = "/result";
 });
 
 //logout redirect
