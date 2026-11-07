@@ -49,6 +49,26 @@
       </div>
     </main>
 
+    <!-- Test box: opens below the quiz list when Test is pressed (the JavaScript fills it) -->
+    <section id="test-box" aria-labelledby="test-box-title" hidden>
+      <div id="test-box-header">
+        <h2 id="test-box-title"></h2>
+        <button type="button" id="test-close-button">Close</button>
+      </div>
+      <p id="test-box-description"></p>
+
+      <form id="test-form" novalidate>
+        <div id="test-questions"></div>
+
+        <!-- Submit first. The small Score button appears after submitting. -->
+        <div id="test-actions">
+          <button type="submit" id="test-submit-button">Submit</button>
+          <button type="button" id="test-score-button" hidden>Score</button>
+        </div>
+        <div id="test-score-text" role="status" aria-live="polite" hidden></div>
+      </form>
+    </section>
+
   </div>
 
   <!-- Confirm popup -->
@@ -63,6 +83,6 @@
     </div>
   </div>
 
-  <script src="{{url_for('static', filename='start-quiz.js')}}" defer></script>
+  <script src="{{url_for('static', filename='start-quiz.js')}}"></script>
 </body>
 </html>

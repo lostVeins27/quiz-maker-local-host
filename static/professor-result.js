@@ -9,12 +9,17 @@ const endEarlyDialog = document.getElementById("endEarlyDialog");
 const endEarlyError = document.getElementById("endEarlyError");
 const endEarlyYesBtn = document.getElementById("endEarlyYesBtn");
 const endEarlyNoBtn = document.getElementById("endEarlyNoBtn");
+const refreshBtn = document.getElementById("refreshBtn");
 
 // true while the request to end the quiz is being sent, so it can't be sent twice.
 let isEnding = false;
 
 backBtn.addEventListener("click", function () {
   window.location.href = "/dashboard";
+});
+
+refreshBtn.addEventListener("click", function () {
+  window.location.href = "/result";
 });
 
 // End Early button: does not end anything yet, it only opens the "Are you sure?" pop up.
