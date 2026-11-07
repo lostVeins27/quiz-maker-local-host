@@ -52,7 +52,7 @@ const IDENTIFICATION = "identification";
 // ---- Simulation (for testing without a backend) ----
 // true  = the page uses the sample quiz below and never contacts the backend (a delete or an edit only affects the page, and a refresh brings the quiz back).
 // false = the page loads, edits and deletes real quizzes using the addresses above.
-const USE_SAMPLE_DATA = true;
+const USE_SAMPLE_DATA = false;
 
 // The sample quiz shown while USE_SAMPLE_DATA is true.
 const SAMPLE_QUIZZES = [
