@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='professor-result.css') }}">
+</head>
+<body id="pageBody">
+    
+    <nav id="ToDashBoard">
+        <button type="button" id="backBtn">To Dashboard</button>
+        <button type="button" id="backToListBtn">Back</button>
+    </nav>
+    
+    <!-- Status of the quiz that was opened from the quiz list (the JavaScript writes "Active" or "Ended") -->
+    <div id="ActiveQuiz">
+        
+        <label id="statusLabel">Status</label>
+        <label id="quizStatus">-</label> 
+    </div>
+
+    <!-- The JavaScript writes the quiz name here, for example "Local History Quiz Result" -->
+    <h1 id="resultsTitle">Result</h1>
+
+    <div id="resultsSummary">
+
+    <div class="resultItem">
+        <h2 id="submittedCount">0</h2>
+        <p>Number Submitted</p>
+    </div>
+
+    <div class="resultItem">
+        <h2 id="averageScore">0%</h2>
+        <p>Average Score</p>
+    </div>
+
+    <div class="resultItem">
+        <h2 id="timeRemaining">00:00</h2>
+        <p>Time Remaining</p>
+    </div>
+
+</div> 
+    
+    <!-- End Early and Refresh are now next to each other. The End Early button stays disabled until the quiz is loaded and active. -->
+    <div id="EndRefresh">
+        <button type="button" id="endearlyBtn" disabled>End Early</button>
+        <button type="button" id="refreshBtn">Refresh</button>
+    </div>
+    
+    <div id="studentResults">
+
+    <!-- Table Header -->
+    <div class="resultRow resultHeader">
+        <span>Name</span>
+        <span>Score</span>
+        <span>Time Finished</span>
+    </div>
+
+    <!-- Loading, empty or error message (the JavaScript fills it) -->
+    <p id="resultsMessage" role="status" aria-live="polite"></p>
+
+    <!-- The JavaScript adds one row for each student who submitted -->
+    <div id="resultRows"></div>
+
+</div>
+
+    <!--pop up that asks if the user really wants to end the quiz (opened by the JavaScript)-->
+    <dialog id="endEarlyDialog" aria-labelledby="endEarlyTitle">
+        <h2 id="endEarlyTitle">End Quiz Early</h2>
+        <p id="endEarlyText">Are you sure you want to end the quiz now?</p>
+        <p id="endEarlyError"></p>
+        <div id="endEarlyActions">
+            <button type="button" id="endEarlyNoBtn" autofocus>No</button>
+            <button type="button" id="endEarlyYesBtn">Yes</button>
+        </div>
+    </dialog>
+
+    <script src="{{ url_for('static', filename='professor-result.js') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --card-dark: #e8edf5;
+  --text: #1f2937;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --border: #d9dee8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/*Page*/
+#pageBody {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 32px;
+    padding: 160px 24px 24px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, "Segoe UI", Arial;
+}
+
+/*to dashboard button: right side lines up with the boxes (boxes are 85% wide, so 0.075 = space on each side; change it if the box width changes)*/
+#ToDashBoard {
+    position: absolute;
+    top: 40px;
+    right: calc(24px + (100% - 48px) * 0.075);
+
+    /*the to dashboard button on top, the back button underneath*/
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/*to dashboard button (a bit smaller than the other buttons, red)*/
+#backBtn {
+    width: 170px;
+    padding: 22px 16px;
+    font-size: 18px;
+    color: white;
+    background: rgb(241, 67, 67);
+    border: 1px solid rgb(241, 67, 67);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#backBtn:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  transform: scale(1.1);
+}
+
+/*back button (blue, same size as the to dashboard button): goes back to the quiz list*/
+#backToListBtn {
+    width: 170px;
+    padding: 22px 16px;
+    font-size: 18px;
+    color: white;
+    background: var(--primary);
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#backToListBtn:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: scale(1.1);
+}
+
+/*status of the quiz: its left side lines up with the left side of the boxes*/
+#ActiveQuiz {
+    position: absolute;
+    top: 40px;
+    left: calc(24px + (100% - 48px) * 0.075);
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/*quiz name + "Result" in the middle (a long name wraps instead of covering the status and the button)*/
+#resultsTitle {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 40%;
+    text-align: center;
+    overflow-wrap: anywhere;
+
+    font-size: 32px;
+    font-weight: bold;
+    margin: 0;
+}
+
+#statusLabel {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#quizStatus {
+    font-size: 18px;
+    color: #6b7280;
+}
+
+/*summary box (number submitted / average score / time remaining), slightly darker*/
+#resultsSummary {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 50px;
+    width: 85%;
+    order: 1;
+    padding: 25px;
+    background: var(--card-dark);
+    border: 3px solid var(--border);
+    border-radius: 16px;
+}
+
+.resultItem {
+    text-align: center;
+    flex: 1;
+}
+
+/*results table, slightly darker*/
+#studentResults {
+    width: 85%;
+    order: 3;
+    height: 450px;
+
+    display: flex;
+    flex-direction: column;
+
+    background: var(--card-dark);
+    border: 3px solid var(--border);
+    border-radius: 16px;
+
+    overflow-y: auto;
+}
+
+.resultRow {
+    display: grid;
+    grid-template-columns: 2fr 1.62fr 0.5fr;
+    align-items: center;
+
+    padding: 20px 30px;
+
+    border-bottom: 1px solid var(--border);
+    font-size: 18px;
+}
+
+/*a long student name wraps instead of pushing the other columns*/
+.resultRow span {
+    overflow-wrap: anywhere;
+}
+
+.resultHeader {
+    font-weight: bold;
+    background: #1d4ed8;
+    color: white;
+    position: sticky;
+    top: 0;
+}
+
+/*loading, empty and error message inside the results table*/
+#resultsMessage {
+    margin: 0;
+    padding: 20px 30px;
+    font-size: 18px;
+    color: #6b7280;
+    text-align: center;
+}
+
+#resultsMessage:empty {
+    display: none;
+}
+
+#resultsMessage[data-status="error"] {
+    color: #b00020;
+}
+
+/*end early and refresh buttons between the summary box and the table, next to each other on the left (same width as the boxes)*/
+#EndRefresh {
+    display: flex;
+    justify-content: flex-start;
+    gap: 24px;
+    width: 85%;
+    order: 2;
+}
+
+#endearlyBtn,
+#refreshBtn {
+     padding: 28px 20px;
+     font-size: 20px;
+     font-weight: 500;
+     color: white;
+     width: 210px;
+     background: var(--primary);
+     border: none;
+     border-radius: 20px;
+     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+     cursor: pointer;
+     transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+#endearlyBtn {
+    background-color: rgb(241, 67, 67);
+}
+
+#endearlyBtn:hover:not(:disabled),
+#refreshBtn:hover:not(:disabled) {
+    transform: scale(1.1);
+}
+
+/*end early button before the quiz is loaded or after the quiz has ended, and refresh button while loading*/
+#endearlyBtn:disabled,
+#refreshBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/*end early confirmation pop up (Yes / No)*/
+#endEarlyDialog {
+    width: calc(100% - 32px);
+    max-width: 420px;
+    padding: 24px;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+#endEarlyDialog::backdrop {
+    background: rgba(31, 41, 55, 0.5);
+}
+
+#endEarlyTitle {
+    margin: 0 0 12px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+#endEarlyText {
+    margin: 0;
+    font-size: 18px;
+}
+
+/*error shown in the pop up when the quiz could not be ended*/
+#endEarlyError {
+    margin: 12px 0 0;
+    color: #b00020;
+    font-size: 14px;
+}
+
+#endEarlyError:empty {
+    display: none;
+}
+
+#endEarlyActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/*no button (white)*/
+#endEarlyNoBtn {
+    padding: 10px 22px;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#endEarlyNoBtn:hover:not(:disabled) {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+/*yes button (same red as the end early button)*/
+#endEarlyYesBtn {
+    padding: 10px 22px;
+    font-family: inherit;
+    font-size: 16px;
+    color: white;
+    background: rgb(241, 67, 67);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#endEarlyYesBtn:hover:not(:disabled) {
+    background: #dc2626;
+}
+
+#endEarlyNoBtn:disabled,
+#endEarlyYesBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
