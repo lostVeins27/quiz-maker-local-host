@@ -8,7 +8,7 @@
 </head>
 <body id="pageBody">
 
-  <h1 id="pageTitle">Welcome {{user[1]}} !</h1>
+  <h1 id="pageTitle">Welcome {{user[1]}}</h1>
 
   <nav id="logoutNav">
     <button type="button" id="logoutBtn">Logout</button>
@@ -16,13 +16,15 @@
 
   <div id="buttonContainer">
 
-    <button type="button" id="QuizListBtn">
-      <span>Take Quiz</span>
-      <div class="ManageQuizPixel"></div>
+    <button type="button" id="TakeQuizBtn">
+      <span>Take quiz</span>
+      <div class="TakeQuiz"></div>
     </button>
 
-    <button type="button" id="TakeQuizBtn">Take quiz</button>
-    <button type="button" id="ResultBtn">Results</button>
+    <button type="button" id="ResultBtn">
+      <span>Results</span>
+      <div class="CheckResult"></div>
+    </button>
   </div>
 
   <script src="{{url_for('static', filename='student-dashboard.js')}}"></script>
