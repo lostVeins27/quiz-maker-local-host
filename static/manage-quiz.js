@@ -91,6 +91,18 @@ const SAMPLE_QUIZZES = [
       },
     ],
   },
+  {
+    id: 2,
+    title: "Basic Geography Quiz",
+    description: "A short quiz about capital cities.",
+    questions: [
+      {
+        type: IDENTIFICATION,
+        text: "What is the capital city of the Philippines?",
+        correctAnswer: "Manila",
+      },
+    ],
+  },
 ];
 
 // Find each element on the page once, then reuse these variables.
