@@ -261,11 +261,162 @@ def result():
 
 @app.route("/manage-quiz")
 def manage_quiz():
-
     if "role" not in session or session["role"] != "professor":
         return redirect(url_for("dashboard"))
-
+    
     return render_template("manage-quiz.html")
+
+@app.route("/quizzes", methods=["GET"])
+def get_quizzes():
+    if "role" not in session or session["role"] != "professor":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    professor_email = session.get("user_email")
+    conn = sqlite3.connect("quizdb.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    # Fetch quizzes created by the logged-in professor
+    cursor.execute("SELECT * FROM quiz WHERE professor_email = ?", (professor_email,))
+    quizzes = cursor.fetchall()
+
+    quiz_list = []
+    for q in quizzes:
+        # Count the questions belonging to this quiz
+        cursor.execute("SELECT COUNT(*) as count FROM question WHERE quiz_id = ?", (q["id"],))
+        count_row = cursor.fetchone()
+        question_count = count_row["count"] if count_row else 0
+
+        quiz_list.append({
+            "id": q["id"],
+            "title": q["title"],
+            "questionCount": question_count
+        })
+
+    conn.close()
+    return jsonify({"success": True, "quizzes": quiz_list})
+
+
+@app.route("/quizzes/<int:quiz_id>", methods=["GET", "PUT", "DELETE"])
+def handle_quiz(quiz_id):
+    if "role" not in session or session["role"] != "professor":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    conn = sqlite3.connect("quizdb.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # Ensure foreign keys are enabled so CASCADE works properly
+    cursor.execute("PRAGMA foreign_keys = ON;")
+
+    # Verify quiz exists
+    cursor.execute("SELECT * FROM quiz WHERE id = ?", (quiz_id,))
+    quiz = cursor.fetchone()
+    if not quiz:
+        conn.close()
+        return jsonify({"success": False, "message": "Quiz not found."}), 404
+
+    # GET: Return quiz details along with its questions and choices for editing
+    if request.method == "GET":
+        quiz_data = {
+            "id": quiz["id"],
+            "title": quiz["title"],
+            "description": quiz["description"],
+            "questions": []
+        }
+
+        cursor.execute("SELECT * FROM question WHERE quiz_id = ? ORDER BY question_number", (quiz_id,))
+        questions = cursor.fetchall()
+
+        for quest in questions:
+            q_dict = {
+                "type": quest["type"],
+                "text": quest["text"],
+                "correctAnswer": quest["correct_answer"]
+            }
+
+            if quest["type"] in ["multiple-choice", "multiple_choice"]:
+                cursor.execute("SELECT label, text FROM choice WHERE question_id = ?", (quest["id"],))
+                choices = cursor.fetchall()
+                # Convert choice rows into a dictionary format expected by the frontend: {"A": "...", "B": "...", ...}
+                q_dict["choices"] = {c["label"]: c["text"] for c in choices}
+
+            quiz_data["questions"].append(q_dict)
+
+        conn.close()
+        return jsonify({"success": True, "quiz": quiz_data})
+
+    # PUT: Update quiz details, questions, and choices
+    elif request.method == "PUT":
+        data = request.get_json()
+        if not data:
+            conn.close()
+            return jsonify({"success": False, "message": "Invalid update data."}), 400
+
+        title = data.get("title", "").strip()
+        description = data.get("description", "").strip()
+        questions = data.get("questions", [])
+
+        if not title:
+            conn.close()
+            return jsonify({"success": False, "message": "Quiz title is required."}), 400
+
+        try:
+            # Update quiz table
+            cursor.execute(
+                "UPDATE quiz SET title = ?, description = ? WHERE id = ?",
+                (title, description, quiz_id)
+            )
+
+            # Clear out old questions (choices will cascade delete automatically)
+            cursor.execute("DELETE FROM question WHERE quiz_id = ?", (quiz_id,))
+
+            # Insert updated questions and choices
+            for idx, q in enumerate(questions, start=1):
+                q_type = q.get("type")
+                q_text = q.get("text")
+                correct_answer = q.get("correctAnswer")
+
+                cursor.execute(
+                    """
+                    INSERT INTO question (quiz_id, question_number, text, type, correct_answer)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (quiz_id, idx, q_text, q_type, correct_answer)
+                )
+                question_id = cursor.lastrowid
+
+                if q_type in ["multiple-choice", "multiple_choice"]:
+                    choices = q.get("choices", {})
+                    for label, text in choices.items():
+                        cursor.execute(
+                            """
+                            INSERT INTO choice (question_id, label, text)
+                            VALUES (?, ?, ?)
+                            """,
+                            (question_id, label, text)
+                        )
+
+            conn.commit()
+            conn.close()
+            return jsonify({"success": True})
+
+        except Exception as e:
+            conn.close()
+            print(f"--- DEBUG ERROR --- {e}")
+            return jsonify({"success": False, "message": "Database error while updating quiz."}), 500
+
+    # DELETE: Delete the quiz from the database
+    elif request.method == "DELETE":
+        try:
+            cursor.execute("DELETE FROM quiz WHERE id = ?", (quiz_id,))
+            conn.commit()
+            conn.close()
+            return jsonify({"success": True})
+        except Exception as e:
+            conn.close()
+            print(f"--- DEBUG ERROR --- {e}")
+            return jsonify({"success": False, "message": "Database error while deleting quiz."}), 500
 
 
 @app.route("/create-quiz", methods=["GET", "POST"])
