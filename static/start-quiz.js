@@ -24,6 +24,10 @@ const testForm = document.getElementById("test-form");
 const testSubmitButton = document.getElementById("test-submit-button");
 const testScoreButton = document.getElementById("test-score-button");
 const testScoreText = document.getElementById("test-score-text");
+const quizTimingOptions = document.getElementById("quiz-timing-options");
+const timingTypeRadios = document.querySelectorAll('input[name="timing-type"]');
+const durationContainer = document.getElementById("duration-container");
+const quizDurationInput = document.getElementById("quiz-duration-input");
 
 let quizzes = [];
 let currentPage = 1;
@@ -44,6 +48,69 @@ async function fetchQuizzes() {
     }
   } catch (err) {
     console.error("Error connecting to server:", err);
+  }
+}
+
+timingTypeRadios.forEach(radio => {
+  radio.addEventListener("change", () => {
+    if (radio.value === "timed" && radio.checked) {
+      durationContainer.hidden = false;
+      quizDurationInput.focus();
+    } else {
+      durationContainer.hidden = true;
+    }
+  });
+});
+
+function openConfirm(quiz, type) {
+  confirmAction = { type, quiz };
+  confirmTitle.textContent = type === "end" ? "End Quiz" : "Start Quiz";
+  confirmMessage.textContent = type === "end" 
+    ? `Do you really want to end "${quiz.title}"?`
+    : `Choose quiz timing for "${quiz.title}":`;
+
+  if (type === "start") {
+    quizTimingOptions.hidden = false;
+    document.querySelector('input[name="timing-type"][value="untimed"]').checked = true;
+    durationContainer.hidden = true;
+    quizDurationInput.value = "10";
+  } else {
+    quizTimingOptions.hidden = true;
+  }
+
+  confirmOverlay.hidden = false;
+}
+
+confirmYesButton.addEventListener("click", () => {
+  if (confirmAction) {
+    let durationMinutes = 0;
+    if (confirmAction.type === "start") {
+      const selectedType = document.querySelector('input[name="timing-type"]:checked').value;
+      if (selectedType === "timed") {
+        durationMinutes = parseInt(quizDurationInput.value) || 10;
+        if (durationMinutes < 1) durationMinutes = 1;
+      }
+    }
+    toggleQuizState(confirmAction.quiz, confirmAction.type === "start", durationMinutes);
+  }
+  closeConfirm();
+});
+
+async function toggleQuizState(quiz, start, durationMinutes = 0) {
+  try {
+    const res = await fetch(`/api/quiz/${quiz.id}/toggle-active`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: start, durationMinutes: durationMinutes })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      quiz.isActive = start;
+      quiz.durationMinutes = durationMinutes;
+      renderTable();
+    }
+  } catch (err) {
+    console.error("Error updating quiz state:", err);
   }
 }
 
@@ -76,7 +143,14 @@ function renderTable() {
 
     const titleCell = document.createElement("td");
     titleCell.className = "quiz-title-cell";
-    titleCell.textContent = quiz.title;
+    
+    let titleHtml = quiz.title;
+    if (quiz.isActive && quiz.durationMinutes && quiz.durationMinutes > 0) {
+      titleHtml += ` <span style="font-size: 13px; font-weight: normal; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 999px; margin-left: 6px;">Timed: ${quiz.durationMinutes}m</span>`;
+    } else if (quiz.isActive) {
+      titleHtml += ` <span style="font-size: 13px; font-weight: normal; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 999px; margin-left: 6px;">Active</span>`;
+    }
+    titleCell.innerHTML = titleHtml;
 
     const questionsCell = document.createElement("td");
     questionsCell.textContent = quiz.questionCount || 0;
@@ -282,32 +356,6 @@ function renderScoreSummary(result) {
   `;
 }
 
-async function toggleQuizState(quiz, start) {
-  try {
-    const res = await fetch(`/api/quiz/${quiz.id}/toggle-active`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: start })
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      quiz.isActive = start;
-      renderTable();
-    }
-  } catch (err) {
-    console.error("Error updating quiz state:", err);
-  }
-}
-
-function openConfirm(quiz, type) {
-  confirmAction = { type, quiz };
-  confirmTitle.textContent = type === "end" ? "End Quiz" : "Start Quiz";
-  confirmMessage.textContent = type === "end" 
-    ? `Do you really want to end "${quiz.title}"?`
-    : `Do you really want to start "${quiz.title}"?`;
-  confirmOverlay.hidden = false;
-}
-
 function closeConfirm() {
   confirmAction = null;
   confirmOverlay.hidden = true;
@@ -322,7 +370,15 @@ testForm.addEventListener("submit", (e) => { e.preventDefault(); submitTest(); }
 
 confirmYesButton.addEventListener("click", () => {
   if (confirmAction) {
-    toggleQuizState(confirmAction.quiz, confirmAction.type === "start");
+    let durationMinutes = 0;
+    if (confirmAction.type === "start") {
+      const selectedType = document.querySelector('input[name="timing-type"]:checked').value;
+      if (selectedType === "timed") {
+        durationMinutes = parseInt(quizDurationInput.value) || 10;
+        if (durationMinutes < 1) durationMinutes = 1;
+      }
+    }
+    toggleQuizState(confirmAction.quiz, confirmAction.type === "start", durationMinutes);
   }
   closeConfirm();
 });

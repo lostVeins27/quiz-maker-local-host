@@ -8,6 +8,10 @@
 </head>
 <body>
 
+  <div id="quiz-timer-banner" style="display: none; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px 20px; border-radius: 12px; margin-bottom: 20px; font-size: 18px; font-weight: 600; text-align: center;">
+        Time Remaining: <span id="timer-countdown">--:--</span>
+      </div>
+
   <div id="start-quiz-page">
 
     <!-- Page header -->
@@ -77,6 +81,21 @@
     <div id="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
       <h2 id="confirm-title">Start Quiz</h2>
       <p id="confirm-message"></p>
+
+      <!-- Timing Configuration Options (Shown when starting) -->
+      <div id="quiz-timing-options" style="margin-bottom: 20px;" hidden>
+        <label style="display: block; margin-bottom: 10px; font-weight: 600; cursor: pointer;">
+          <input type="radio" name="timing-type" value="untimed" checked style="margin-right: 8px;"> No Time Limit (Untimed)
+        </label>
+        <label style="display: block; margin-bottom: 10px; font-weight: 600; cursor: pointer;">
+          <input type="radio" name="timing-type" value="timed" style="margin-right: 8px;"> Timed Quiz
+        </label>
+        <div id="duration-container" style="margin-left: 24px;" hidden>
+          <label for="quiz-duration-input" style="display: block; font-size: 14px; margin-bottom: 4px; color: #4b5563;">Duration (minutes):</label>
+          <input type="number" id="quiz-duration-input" min="1" max="300" value="10" style="width: 120px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 16px;">
+        </div>
+      </div>
+
       <div id="confirm-buttons">
         <button type="button" id="confirm-no-button">No</button>
         <button type="button" id="confirm-yes-button">Yes</button>

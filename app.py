@@ -384,9 +384,16 @@ def get_professor_quizzes():
             sub_row = cursor.fetchone()
             submitted_count = sub_row["count"] if sub_row else 0
 
+            # Count questions
+            cursor.execute("SELECT COUNT(*) as count FROM question WHERE quiz_id = ?", (quiz_id,))
+            count_row = cursor.fetchone()
+            question_count = count_row["count"] if count_row else 0
+
             quiz_list.append({
                 "id": quiz_id,
                 "title": q["title"],
+                "description": q["description"],
+                "questionCount": question_count,
                 "submittedCount": submitted_count,
                 "isActive": bool(q["is_active"])
             })
@@ -427,37 +434,6 @@ def toggle_quiz_active(quiz_id):
     conn.close()
 
     return jsonify({"success": True})
-
-@app.route("/quizzes", methods=["GET"])
-def get_manage_quizzes():
-    if "role" not in session or session["role"] != "professor":
-        return jsonify({"success": False, "message": "Unauthorized"}), 403
-
-    professor_email = session.get("user_email")
-    conn = sqlite3.connect("quizdb.db")
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    # Fetch quizzes created by the logged-in professor
-    cursor.execute("SELECT * FROM quiz WHERE professor_email = ?", (professor_email,))
-    quizzes = cursor.fetchall()
-
-    quiz_list = []
-    for q in quizzes:
-        # Count the questions belonging to this quiz
-        cursor.execute("SELECT COUNT(*) as count FROM question WHERE quiz_id = ?", (q["id"],))
-        count_row = cursor.fetchone()
-        question_count = count_row["count"] if count_row else 0
-
-        quiz_list.append({
-            "id": q["id"],
-            "title": q["title"],
-            "description": q["description"],
-            "questionCount": question_count
-        })
-
-    conn.close()
-    return jsonify({"success": True, "quizzes": quiz_list})
 
 @app.route("/api/quiz/<int:quiz_id>/details", methods=["GET"])
 def get_quiz_details(quiz_id):
@@ -519,6 +495,8 @@ def get_quiz_results(quiz_id):
         return jsonify({"success": False, "message": "Unauthorized"}), 403
 
     try:
+        check_and_expire_quizzes() # Auto-expire if time ran out
+
         conn = sqlite3.connect("quizdb.db")
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -532,6 +510,18 @@ def get_quiz_results(quiz_id):
 
         is_active = bool(quiz["is_active"])
         status_str = "active" if is_active else "inactive"
+
+        # Calculate accurate remaining seconds or set to infinite (-1) for untimed quizzes
+        import datetime
+        time_remaining_seconds = -1  # Default to infinite (-1) if no duration is set
+        if is_active and quiz["duration_minutes"] and int(quiz["duration_minutes"]) > 0:
+            try:
+                started = datetime.datetime.fromisoformat(quiz["started_at"])
+                duration_secs = int(quiz["duration_minutes"]) * 60
+                elapsed = (datetime.datetime.now() - started).total_seconds()
+                time_remaining_seconds = max(0, int(duration_secs - elapsed))
+            except Exception:
+                pass
 
         # Fetch actual submissions for this quiz
         cursor.execute("SELECT student_name, score, total_points, time_finished FROM submission WHERE quiz_id = ?", (quiz_id,))
@@ -553,7 +543,7 @@ def get_quiz_results(quiz_id):
             "quiz": {
                 "title": quiz["title"],
                 "status": status_str,
-                "timeRemainingSeconds": 600
+                "timeRemainingSeconds": time_remaining_seconds
             },
             "results": results_list
         })

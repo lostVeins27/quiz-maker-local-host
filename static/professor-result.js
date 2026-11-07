@@ -255,5 +255,64 @@ backToListBtn.addEventListener("click", function () {
 // Refresh button: loads the results again and keeps the same quiz open.
 refreshBtn.addEventListener("click", loadResults);
 
+// Writes the time remaining as minutes:seconds, or Infinite if untimed
+function showTimeRemaining() {
+  if (secondsLeft < 0) {
+    timeRemaining.textContent = "Infinite";
+    return;
+  }
+  const minutes = Math.floor(secondsLeft / 60);
+  const seconds = secondsLeft % 60;
+
+  timeRemaining.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function normalizeResultsData(data) {
+  const quiz = data.quiz ?? {};
+  const results = Array.isArray(data.results) ? data.results : [];
+
+  let rawTime = Number(quiz.timeRemainingSeconds);
+  if (isNaN(rawTime)) rawTime = -1;
+
+  return {
+    title: String(quiz.title ?? ""),
+    status: String(quiz.status ?? "").toLowerCase() === "active" ? "active" : "inactive",
+    timeRemainingSeconds: rawTime,
+    results: results.map((result) => ({
+      name: String(result.name ?? ""),
+      score: Number(result.score) || 0,
+      total: Number(result.total) || 0,
+      timeFinished: String(result.timeFinished ?? ""),
+    })),
+  };
+}
+
+function stopCountdown() {
+  if (countdownTimer !== null) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+}
+
+// Starts counting down from the given seconds (-1 for infinite)
+function startCountdown(seconds) {
+  stopCountdown();
+  secondsLeft = seconds;
+  showTimeRemaining();
+
+  if (secondsLeft <= 0) {
+    return; // Handles both 0 (ended/expired) and -1 (infinite)
+  }
+
+  countdownTimer = setInterval(function () {
+    secondsLeft -= 1;
+    showTimeRemaining();
+
+    if (secondsLeft <= 0) {
+      stopCountdown();
+    }
+  }, 1000);
+}
+
 // When the page opens, load the results of the quiz that was pressed.
 loadResults();
