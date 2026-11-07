@@ -10,10 +10,10 @@ function getResultsEndpoint(quizId) {
 }
 
 // The dashboard page.
-const DASHBOARD_PAGE_URL = "dashboard.html";
+const DASHBOARD_PAGE_URL = "/dashboard";
 
 // The quiz list page (the Back button goes here).
-const QUIZ_LIST_PAGE_URL = "professor-result-main.html";
+const QUIZ_LIST_PAGE_URL = "/result-main";
 
 // ---- How the results look (the page reads this shape) ----
 // {
