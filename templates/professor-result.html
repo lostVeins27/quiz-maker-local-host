@@ -4,23 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Results</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='professor-result.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='professor-result.css') }}">
 </head>
 <body id="pageBody">
     
     <nav id="ToDashBoard">
         <button type="button" id="backBtn">To Dashboard</button>
+        <button type="button" id="backToListBtn">Back</button>
     </nav>
     
+    <!-- Status of the quiz that was opened from the quiz list (the JavaScript writes "Active" or "Ended") -->
     <div id="ActiveQuiz">
         
-        <label id="activeQuizLabel">Current Active Quiz</label>
-        <label id="activeQuizName">No active quiz</label> 
-        <!-- THIS LINE ABOVE  (id="activeQuizName")  WILL DISPLAY THE ACTUAL QUIZ BEING ACTIVE 
-        SO ITO YUNG ILILINK SA IBANG FILE OR SOMETHING-->
+        <label id="statusLabel">Status</label>
+        <label id="quizStatus">-</label> 
     </div>
 
-        <h1 id="resultsTitle">Results</h1>
+    <!-- The JavaScript writes the quiz name here, for example "Local History Quiz Result" -->
+    <h1 id="resultsTitle">Result</h1>
 
     <div id="resultsSummary">
 
@@ -41,6 +42,11 @@
 
 </div> 
     
+    <!-- End Early and Refresh are now next to each other. The End Early button stays disabled until the quiz is loaded and active. -->
+    <div id="EndRefresh">
+        <button type="button" id="endearlyBtn" disabled>End Early</button>
+        <button type="button" id="refreshBtn">Refresh</button>
+    </div>
     
     <div id="studentResults">
 
@@ -51,35 +57,13 @@
         <span>Time Finished</span>
     </div>
 
-    <!-- Student Entry Part 
-         Temporary Entries Just To Show How It Would Look
-         Linking And Modifying This Part Is Up To You -->
+    <!-- Loading, empty or error message (the JavaScript fills it) -->
+    <p id="resultsMessage" role="status" aria-live="polite"></p>
 
-    <div class="resultRow">
-        <span>John Doe</span>
-        <span>18/20</span>
-        <span>10:25 AM</span>
-    </div>
-
-    <div class="resultRow">
-        <span>Jane Smith</span>
-        <span>20/20</span>
-        <span>10:30 AM</span>
-    </div>
-
-    <div class="resultRow">
-        <span>Alex Cruz</span>
-        <span>15/20</span>
-        <span>10:35 AM</span>
-    </div>
+    <!-- The JavaScript adds one row for each student who submitted -->
+    <div id="resultRows"></div>
 
 </div>
-
-    <!-- The End Early button opens the double check pop up below (so it can't be pressed by mistake) -->
-    <div id="EndRefresh">
-        <button type="button" id="endearlyBtn">End Early</button>
-        <button type="button" id="refreshBtn">Refresh</button>
-    </div>
 
     <!--pop up that asks if the user really wants to end the quiz (opened by the JavaScript)-->
     <dialog id="endEarlyDialog" aria-labelledby="endEarlyTitle">
@@ -92,6 +76,6 @@
         </div>
     </dialog>
 
-    <script src="{{ url_for('static', filename='professor-result.js')}}" defer></script>
+    <script src="{{ url_for('static', filename='professor-result.js') }}" defer></script>
 </body>
 </html>

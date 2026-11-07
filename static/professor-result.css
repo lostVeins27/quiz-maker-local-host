@@ -21,7 +21,7 @@
     align-items: center;
     justify-content: flex-start;
     gap: 32px;
-    padding: 110px 24px 24px;
+    padding: 160px 24px 24px;
     background: var(--bg);
     color: var(--text);
     font-family: system-ui, "Segoe UI", Arial;
@@ -32,6 +32,11 @@
     position: absolute;
     top: 40px;
     right: calc(24px + (100% - 48px) * 0.075);
+
+    /*the to dashboard button on top, the back button underneath*/
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 /*to dashboard button (a bit smaller than the other buttons, red)*/
@@ -53,7 +58,26 @@
   transform: scale(1.1);
 }
 
-/*current active quiz: its left side lines up with the left side of the boxes*/
+/*back button (blue, same size as the to dashboard button): goes back to the quiz list*/
+#backToListBtn {
+    width: 170px;
+    padding: 22px 16px;
+    font-size: 18px;
+    color: white;
+    background: var(--primary);
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#backToListBtn:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: scale(1.1);
+}
+
+/*status of the quiz: its left side lines up with the left side of the boxes*/
 #ActiveQuiz {
     position: absolute;
     top: 40px;
@@ -64,23 +88,27 @@
     gap: 8px;
 }
 
+/*quiz name + "Result" in the middle (a long name wraps instead of covering the status and the button)*/
 #resultsTitle {
     position: absolute;
     top: 30px;
     left: 50%;
     transform: translateX(-50%);
+    max-width: 40%;
+    text-align: center;
+    overflow-wrap: anywhere;
 
     font-size: 32px;
     font-weight: bold;
     margin: 0;
 }
 
-#activeQuizLabel {
+#statusLabel {
     font-size: 24px;
     font-weight: bold;
 }
 
-#activeQuizName {
+#quizStatus {
     font-size: 18px;
     color: #6b7280;
 }
@@ -131,6 +159,11 @@
     font-size: 18px;
 }
 
+/*a long student name wraps instead of pushing the other columns*/
+.resultRow span {
+    overflow-wrap: anywhere;
+}
+
 .resultHeader {
     font-weight: bold;
     background: #1d4ed8;
@@ -139,10 +172,28 @@
     top: 0;
 }
 
-/*end early and refresh buttons between the summary box and the table, far apart (same width as the boxes)*/
+/*loading, empty and error message inside the results table*/
+#resultsMessage {
+    margin: 0;
+    padding: 20px 30px;
+    font-size: 18px;
+    color: #6b7280;
+    text-align: center;
+}
+
+#resultsMessage:empty {
+    display: none;
+}
+
+#resultsMessage[data-status="error"] {
+    color: #b00020;
+}
+
+/*end early and refresh buttons between the summary box and the table, next to each other on the left (same width as the boxes)*/
 #EndRefresh {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 24px;
     width: 85%;
     order: 2;
 }
@@ -167,12 +218,13 @@
 }
 
 #endearlyBtn:hover:not(:disabled),
-#refreshBtn:hover {
+#refreshBtn:hover:not(:disabled) {
     transform: scale(1.1);
 }
 
-/*end early button after the quiz has ended*/
-#endearlyBtn:disabled {
+/*end early button before the quiz is loaded or after the quiz has ended, and refresh button while loading*/
+#endearlyBtn:disabled,
+#refreshBtn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }

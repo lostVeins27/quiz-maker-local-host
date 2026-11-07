@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Results</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='professor-result-main.css')}}" />
+  </head>
+
+  <body id="page-body">
+    <main id="main-professor-result-page">
+
+      <!--page header: title, short description and the to dashboard link-->
+      <header id="page-header">
+        <div id="page-heading">
+          <h1 id="page-title">Quiz Results</h1>
+          <p id="page-description">Select a quiz to see its results.</p>
+        </div>
+        <div id="header-actions">
+          <a id="dashboard-link" href="#">To Dashboard</a>
+        </div>
+      </header>
+
+      <!--notice shown by the JavaScript when the quiz list is not connected yet-->
+      <p id="api-status-notice" hidden>
+        The quiz list is not connected to the backend yet, so no quizzes can be shown.
+      </p>
+
+      <!--white box with the search bar, the quiz table and the pagination-->
+      <section id="quiz-list-section" aria-labelledby="quiz-list-heading">
+        <h2 id="quiz-list-heading" class="visually-hidden">Quiz List</h2>
+
+        <!--search bar-->
+        <div id="quiz-toolbar">
+          <label for="quiz-search" class="visually-hidden">Search quizzes by name</label>
+          <input type="search" id="quiz-search" placeholder="Search quiz by name..." autocomplete="off" />
+        </div>
+
+        <!--the JavaScript fills this table with the quizzes of the current page-->
+        <div id="quiz-table-wrapper">
+          <table id="quiz-table">
+            <thead>
+              <tr>
+                <th scope="col">Quiz Name</th>
+              </tr>
+            </thead>
+            <tbody id="quiz-table-body"></tbody>
+          </table>
+        </div>
+
+        <!--loading, empty, no results or error message (the JavaScript fills it)-->
+        <p id="quiz-list-message" role="status" aria-live="polite"></p>
+
+        <!--pagination-->
+        <nav id="pagination" aria-label="Quiz list pages" hidden>
+          <p id="pagination-info"></p>
+          <div id="pagination-controls">
+            <button type="button" id="previous-page-btn">Previous</button>
+            <span id="page-indicator"></span>
+            <button type="button" id="next-page-btn">Next</button>
+          </div>
+        </nav>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='professor-result-main.js') }}" defer></script>
+  </body>
+</html>

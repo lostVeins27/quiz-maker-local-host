@@ -259,6 +259,22 @@ def result():
     
     return render_template("result.html", user=user)
 
+@app.route("/result-main")
+def result_main():
+
+    user = get_current_user()
+
+    if not user:
+        return redirect(url_for("login_page"))
+
+    match user["role"]:
+            case "student":
+                return render_template("student-result.html")
+            case "professor":
+                return render_template("professor-result-main.html")
+            case _:
+                return "Unauthorized role", 403
+
 @app.route("/manage-quiz")
 def manage_quiz():
     if "role" not in session or session["role"] != "professor":
