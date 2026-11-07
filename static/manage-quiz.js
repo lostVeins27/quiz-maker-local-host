@@ -11,16 +11,27 @@ function getDeleteEndpoint(quizId) {
   return `/quizzes/${encodeURIComponent(quizId)}`;
 }
 
+// The page that edits a quiz. It is in the same folder as this page, and the quiz id
 // is added to the address (edit-quiz.html?id=3), so the edit page knows which quiz to open.
 function getEditPageUrl(quizId) {
   return `edit-quiz.html?id=${encodeURIComponent(quizId)}`;
 }
 
 // The page that creates a quiz.
-const CREATE_QUIZ_PAGE_URL = "create-quiz.html";
+const CREATE_QUIZ_PAGE_URL = "/create-quiz";
 
 // How many quizzes are shown on one page.
 const QUIZZES_PER_PAGE = 10;
+
+// ---- Simulation (for testing without a backend) ----
+// true  = the page uses the sample quiz below and never contacts the backend (a delete only affects the page, and a refresh brings the quiz back).
+// false = the page loads and deletes real quizzes using the addresses above.
+const USE_SAMPLE_DATA = true;
+
+// The sample quiz shown while USE_SAMPLE_DATA is true.
+const SAMPLE_QUIZZES = [
+  { id: 1, title: "Local History Quiz", questionCount: 5 },
+];
 
 // Find each element on the page once, then reuse these variables.
 const apiStatusNotice = document.getElementById("api-status-notice");
@@ -183,6 +194,13 @@ async function loadQuizzes() {
   setVisible(pagination, false);
   showListMessage("Loading quizzes...");
 
+  // Simulation: use the sample quiz instead of asking the backend.
+  if (USE_SAMPLE_DATA) {
+    allQuizzes = SAMPLE_QUIZZES.map(normalizeQuiz);
+    renderQuizList();
+    return;
+  }
+
   try {
     const response = await fetch(QUIZ_LIST_ENDPOINT);
     const data = await response.json();
@@ -230,17 +248,26 @@ async function confirmDelete() {
   deleteDialogError.textContent = "";
 
   try {
-    const response = await fetch(getDeleteEndpoint(quiz.id), { method: "DELETE" });
-    const data = await response.json();
+    let deleted = true;
+    let failMessage = "";
 
-    // The delete only counts if the backend answers with {"success": true}
-    if (response.ok && data.success) {
+    // Simulation: no request is sent, the delete always works.
+    if (!USE_SAMPLE_DATA) {
+      const response = await fetch(getDeleteEndpoint(quiz.id), { method: "DELETE" });
+      const data = await response.json();
+
+      // The delete only counts if the backend answers with {"success": true}
+      deleted = response.ok && data.success;
+      failMessage = data.message;
+    }
+
+    if (deleted) {
       allQuizzes = allQuizzes.filter((item) => item.id !== quiz.id);
       deleteDialog.close();
       renderQuizList();
       showFormMessage(`"${quiz.title}" was deleted.`, "success");
     } else {
-      deleteDialogError.textContent = data.message || "The quiz could not be deleted.";
+      deleteDialogError.textContent = failMessage || "The quiz could not be deleted.";
     }
   } catch (error) {
     console.error("Deleting the quiz failed:", error);
