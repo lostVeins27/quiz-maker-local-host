@@ -13,50 +13,48 @@
         <button type="button" id="backToListBtn">Back</button>
     </nav>
     
-    <!-- Status of the quiz that was opened from the quiz list (the JavaScript writes "Active" or "Ended") -->
+    <!-- Status of the quiz that was opened from the quiz list -->
     <div id="ActiveQuiz">
-        
         <label id="statusLabel">Status</label>
         <label id="quizStatus">-</label> 
     </div>
 
-    <!-- The JavaScript writes the quiz name here, for example "Local History Quiz Result" -->
+    <!-- The JavaScript writes the quiz name here -->
     <h1 id="resultsTitle">Result</h1>
 
     <div id="resultsSummary">
+        <div class="resultItem">
+            <h2 id="submittedCount">0</h2>
+            <p>Number Submitted</p>
+        </div>
 
-    <div class="resultItem">
-        <h2 id="submittedCount">0</h2>
-        <p>Number Submitted</p>
-    </div>
+        <div class="resultItem">
+            <h2 id="averageScore">0%</h2>
+            <p>Average Score</p>
+        </div>
 
-    <div class="resultItem">
-        <h2 id="averageScore">0%</h2>
-        <p>Average Score</p>
-    </div>
-
-    <div class="resultItem">
-        <h2 id="timeRemaining">00:00</h2>
-        <p>Time Remaining</p>
-    </div>
-
-</div> 
+        <div class="resultItem">
+            <h2 id="timeRemaining">00:00</h2>
+            <p>Time Remaining</p>
+        </div>
+    </div> 
     
-    <!-- Refresh button: between the summary box and the results table, on the right -->
+    <!-- Refresh button -->
     <div id="RefreshArea">
         <button type="button" id="refreshBtn">Refresh</button>
     </div>
 
     <div id="studentResults">
 
-    <!-- Table Header -->
+    <!-- Table Header with 4 Columns -->
     <div class="resultRow resultHeader">
         <span>Name</span>
         <span>Score</span>
+        <span>Date Finished</span>
         <span>Time Finished</span>
     </div>
 
-    <!-- Loading, empty or error message (the JavaScript fills it) -->
+    <!-- Loading, empty or error message -->
     <p id="resultsMessage" role="status" aria-live="polite"></p>
 
     <!-- The JavaScript adds one row for each student who submitted -->
