@@ -1,68 +1,7 @@
-// Key used to store the quizzes in localStorage
-const QUIZ_STORAGE_KEY = "quizzes";
-
 // Number of quizzes shown per page
 const QUIZZES_PER_PAGE = 5;
-
-// Scoring: every question is worth 1 point (a question can have its own "points" number).
-// The student passes with this percentage or more.
 const PASSING_PERCENT = 75;
-
-// The letters shown before the choices of a question
 const CHOICE_LETTERS = ["A", "B", "C", "D", "E", "F"];
-
-// Every quiz has its own 5 digit PIN (quiz.pin). It is made by a randomizer as soon as the quiz exists
-// (a quiz added on the Create Quiz page gets its PIN the next time this page opens) and the professor can always see it.
-// The student must enter this PIN before taking the quiz. A started quiz is saved with isActive = true.
-
-// Sample quizzes saved when there are no quizzes yet.
-// answer = the position of the correct choice (0 is the first choice).
-const SAMPLE_QUIZZES = [
-  {
-    id: 1,
-    title: "Local History Quiz",
-    description: "A short quiz about local history.",
-    questions: [
-      {
-        text: "In what year was the town founded?",
-        choices: ["1850", "1875", "1900", "1925"],
-        answer: 1
-      },
-      {
-        text: "Which industry first brought settlers to the area?",
-        choices: ["Farming", "Mining", "Fishing", "Shipping"],
-        answer: 0
-      },
-      {
-        text: "Which event is held in the town every spring?",
-        choices: ["Harvest Festival", "Founders Day", "Flower Parade", "Boat Race"],
-        answer: 2
-      }
-    ]
-  },
-  {
-    id: 2,
-    title: "Basic Geography Quiz",
-    description: "A short quiz about capital cities.",
-    questions: [
-      {
-        text: "What is the capital city of the Philippines?",
-        choices: ["Cebu City", "Manila", "Davao City", "Quezon City"],
-        answer: 1
-      },
-      {
-        text: "What is the capital city of Japan?",
-        choices: ["Osaka", "Kyoto", "Tokyo", "Nagoya"],
-        answer: 2
-      },
-      {
-        text: "What is the capital city of France?",
-        choices: ["Paris", "Lyon", "Marseille", "Nice"],
-        answer: 0
-      }
-    ]
-  }
-];
 
 // Page elements
 const searchInput = document.getElementById("search-input");
@@ -88,56 +27,31 @@ const testScoreText = document.getElementById("test-score-text");
 
 let quizzes = [];
 let currentPage = 1;
-
-// What the confirm popup is asking about: { type: "start" or "end", quiz } (null when the popup is closed)
 let confirmAction = null;
-
-// The quiz in the test box (null when the box is closed)
 let testingQuiz = null;
-
-// true after the test was submitted (the answers are locked and marked)
 let testSubmitted = false;
 
-// The score of the submitted test
-let testScore = 0;
-
-// Get the quizzes from localStorage.
-// If there are no quizzes (nothing saved, bad data or an empty list), the sample quizzes are saved.
-function loadQuizzes() {
+// Fetch quizzes from your Flask backend database API
+async function fetchQuizzes() {
   try {
-    const saved = localStorage.getItem(QUIZ_STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
+    const res = await fetch("/api/quizzes");
+    const data = await res.json();
+    if (res.ok && data.success) {
+      quizzes = data.quizzes;
+      renderTable();
+    } else {
+      console.error("Failed to load quizzes:", data.message);
     }
-  } catch (error) {
-    // Bad data, so the sample quizzes are saved again below
-  }
-
-  saveQuizzes(SAMPLE_QUIZZES);
-  return SAMPLE_QUIZZES;
-}
-
-// Save the quizzes to localStorage
-function saveQuizzes(list) {
-  try {
-    localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(list));
-  } catch (error) {
-    console.error("Could not save quizzes:", error);
+  } catch (err) {
+    console.error("Error connecting to server:", err);
   }
 }
 
-// Get the quizzes that match the search
 function getFilteredQuizzes() {
   const search = searchInput.value.trim().toLowerCase();
-  return quizzes.filter(function (quiz) {
-    return String(quiz.title).toLowerCase().includes(search);
-  });
+  return quizzes.filter((quiz) => String(quiz.title).toLowerCase().includes(search));
 }
 
-// Show the table rows and pagination
 function renderTable() {
   const filtered = getFilteredQuizzes();
   const totalPages = Math.max(1, Math.ceil(filtered.length / QUIZZES_PER_PAGE));
@@ -153,15 +67,11 @@ function renderTable() {
 
   if (pageQuizzes.length === 0) {
     const emptyRow = document.createElement("tr");
-    const emptyCell = document.createElement("td");
-    emptyCell.colSpan = 4;
-    emptyCell.className = "empty-cell";
-    emptyCell.textContent = "No quizzes found.";
-    emptyRow.appendChild(emptyCell);
+    emptyRow.innerHTML = `<td colspan="4" class="empty-cell">No quizzes found.</td>`;
     quizTableBody.appendChild(emptyRow);
   }
 
-  pageQuizzes.forEach(function (quiz) {
+  pageQuizzes.forEach((quiz) => {
     const row = document.createElement("tr");
 
     const titleCell = document.createElement("td");
@@ -169,53 +79,34 @@ function renderTable() {
     titleCell.textContent = quiz.title;
 
     const questionsCell = document.createElement("td");
-    questionsCell.textContent = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
+    questionsCell.textContent = quiz.questionCount || 0;
 
     const actionsCell = document.createElement("td");
-
-    // Start button. While the quiz is going it is a red End button instead.
     const startEndButton = document.createElement("button");
     startEndButton.type = "button";
 
     if (quiz.isActive) {
       startEndButton.className = "end-button";
       startEndButton.textContent = "End";
-      startEndButton.setAttribute("aria-label", "End quiz " + quiz.title);
-      startEndButton.addEventListener("click", function () {
-        openConfirm(quiz, "end");
-      });
+      startEndButton.addEventListener("click", () => openConfirm(quiz, "end"));
     } else {
       startEndButton.className = "start-button";
       startEndButton.textContent = "Start";
-      startEndButton.setAttribute("aria-label", "Start quiz " + quiz.title);
-      startEndButton.addEventListener("click", function () {
-        openConfirm(quiz, "start");
-      });
+      startEndButton.addEventListener("click", () => openConfirm(quiz, "start"));
     }
 
-    // Test button (beside the Start button): shows the quiz in a box below the list
     const testButton = document.createElement("button");
     testButton.type = "button";
     testButton.className = "test-button";
     testButton.textContent = "Test";
-    testButton.setAttribute("aria-label", "Test quiz " + quiz.title);
-    testButton.addEventListener("click", function () {
-      openTestBox(quiz);
-    });
+    testButton.addEventListener("click", () => openTestBox(quiz.id));
 
     actionsCell.appendChild(startEndButton);
     actionsCell.appendChild(testButton);
 
-    // PIN column (next to the Actions column): the 5 digit code of the quiz, always visible to the professor
     const pinCell = document.createElement("td");
-
-    if (isValidPin(quiz.pin)) {
-      pinCell.className = "pin-cell";
-      pinCell.textContent = quiz.pin;
-    } else {
-      pinCell.className = "pin-empty";
-      pinCell.textContent = "\u2014";
-    }
+    pinCell.className = "pin-cell";
+    pinCell.textContent = quiz.pin || "—";
 
     row.appendChild(titleCell);
     row.appendChild(questionsCell);
@@ -224,16 +115,55 @@ function renderTable() {
     quizTableBody.appendChild(row);
   });
 
-  // Pagination text
   const first = filtered.length === 0 ? 0 : startIndex + 1;
   const last = startIndex + pageQuizzes.length;
-  showingText.textContent = "Showing " + first + " to " + last + " of " + filtered.length + " quizzes";
-  pageText.textContent = "Page " + currentPage + " of " + totalPages;
+  showingText.textContent = `Showing ${first} to ${last} of ${filtered.length} quizzes`;
+  pageText.textContent = `Page ${currentPage} of ${totalPages}`;
   previousButton.disabled = currentPage <= 1;
   nextButton.disabled = currentPage >= totalPages;
 }
 
-// Make the box of one question. The student answers it here (the correct answer is not shown yet).
+// Open Test box and pull detailed question data from server database
+async function openTestBox(quizId) {
+  try {
+    const res = await fetch(`/api/quiz/${quizId}/details`);
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      alert("Could not load quiz details.");
+      return;
+    }
+
+    const quiz = data.quiz;
+    const questions = quiz.questions || [];
+
+    testingQuiz = quiz;
+    testSubmitted = false;
+
+    testBoxTitle.textContent = "Test Quiz: " + quiz.title;
+    testBoxDescription.textContent = quiz.description || "";
+    testBoxDescription.hidden = !quiz.description;
+    testQuestions.innerHTML = "";
+
+    testScoreText.hidden = true;
+    testScoreText.replaceChildren();
+    testScoreButton.hidden = true;
+    testScoreButton.textContent = "Score";
+    testSubmitButton.hidden = questions.length === 0;
+    testSubmitButton.disabled = false;
+
+    if (questions.length === 0) {
+      testQuestions.innerHTML = `<p class="test-empty">This quiz has no questions yet.</p>`;
+    } else {
+      questions.forEach((q, index) => testQuestions.appendChild(createTestQuestion(q, index)));
+    }
+
+    testBox.hidden = false;
+    testBox.scrollIntoView({ block: "start" });
+  } catch (err) {
+    console.error("Error fetching quiz questions:", err);
+  }
+}
+
 function createTestQuestion(question, index) {
   const card = document.createElement("div");
   card.className = "test-question";
@@ -251,85 +181,32 @@ function createTestQuestion(question, index) {
   const choices = Array.isArray(question.choices) ? question.choices : [];
 
   if (choices.length > 0) {
-    // Multiple choice: one radio button for each choice
     const list = document.createElement("div");
     list.className = "test-choices";
 
-    choices.forEach(function (choice, choiceIndex) {
+    choices.forEach((choice, choiceIndex) => {
       const option = document.createElement("label");
       option.className = "test-choice";
-
-      const radio = document.createElement("input");
-      radio.type = "radio";
-      radio.className = "test-radio";
-      radio.name = "test-answer-" + index;
-      radio.value = choiceIndex;
-
-      const letter = document.createElement("span");
-      letter.className = "test-choice-letter";
-      letter.textContent = CHOICE_LETTERS[choiceIndex] || "";
-
-      const choiceText = document.createElement("span");
-      choiceText.className = "test-choice-text";
-      choiceText.textContent = choice;
-
-      option.appendChild(radio);
-      option.appendChild(letter);
-      option.appendChild(choiceText);
+      option.innerHTML = `
+        <input type="radio" class="test-radio" name="test-answer-${index}" value="${choiceIndex}">
+        <span class="test-choice-letter">${CHOICE_LETTERS[choiceIndex] || ""}</span>
+        <span class="test-choice-text">${choice}</span>
+      `;
       list.appendChild(option);
     });
 
     card.appendChild(list);
   } else {
-    // A question without choices: the student types the answer
     const input = document.createElement("input");
     input.type = "text";
     input.className = "test-text-input";
     input.placeholder = "Your answer";
-    input.autocomplete = "off";
-    input.setAttribute("aria-label", "Your answer for question " + (index + 1));
     card.appendChild(input);
   }
 
   return card;
 }
 
-// Open the test box below the list and show the quiz in it (every answer is empty)
-function openTestBox(quiz) {
-  const questions = Array.isArray(quiz.questions) ? quiz.questions : [];
-
-  testingQuiz = quiz;
-  testSubmitted = false;
-  testScore = 0;
-
-  testBoxTitle.textContent = "Test Quiz: " + quiz.title;
-  testBoxDescription.textContent = quiz.description || "";
-  testBoxDescription.hidden = !quiz.description;
-  testQuestions.innerHTML = "";
-
-  testScoreText.hidden = true;
-  testScoreText.replaceChildren();
-  testScoreButton.hidden = true;
-  testScoreButton.textContent = "Score";
-  testSubmitButton.hidden = questions.length === 0;
-  testSubmitButton.disabled = false;
-
-  if (questions.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "test-empty";
-    empty.textContent = "This quiz has no questions yet.";
-    testQuestions.appendChild(empty);
-  }
-
-  questions.forEach(function (question, index) {
-    testQuestions.appendChild(createTestQuestion(question, index));
-  });
-
-  testBox.hidden = false;
-  testBox.scrollIntoView({ block: "start" });
-}
-
-// Close the test box
 function closeTestBox() {
   testingQuiz = null;
   testSubmitted = false;
@@ -337,60 +214,16 @@ function closeTestBox() {
   testQuestions.innerHTML = "";
 }
 
-// Add a small label (like "Correct answer") at the end of a choice
-function addMark(option, className, label) {
-  const mark = document.createElement("span");
-  mark.className = className;
-  mark.textContent = label;
-  option.appendChild(mark);
-}
-
-// How many points a question is worth (1 if the quiz does not say)
-function getQuestionPoints(question) {
-  const points = Number(question.points);
-  return points > 0 ? points : 1;
-}
-
-// Make one line of the score box, like "Correct: 2"
-function createScoreLine(className, text) {
-  const line = document.createElement("p");
-  line.className = className;
-  line.textContent = text;
-  return line;
-}
-
-// Fill the score box: points, percentage, passed or failed, and how many answers were right or wrong
-function renderScoreSummary(result) {
-  testScoreText.replaceChildren(
-    createScoreLine("score-heading", "Your Score"),
-    createScoreLine("score-points", result.score + " / " + result.total + " points"),
-    createScoreLine("score-percent", result.percent + "%"),
-    createScoreLine(
-      "score-remark " + (result.passed ? "score-passed" : "score-failed"),
-      result.passed ? "Passed" : "Failed (passing score: " + PASSING_PERCENT + "%)"
-    ),
-    createScoreLine(
-      "score-counts",
-      "Correct: " + result.correct + "  |  Wrong: " + result.wrong + "  |  Unanswered: " + result.unanswered
-    )
-  );
-}
-
-// Submit the test: lock the answers, show the correct answers, turn the wrong answers red and count the score
 function submitTest() {
-  if (!testingQuiz || testSubmitted) {
-    return;
-  }
+  if (!testingQuiz || testSubmitted) return;
 
   testSubmitted = true;
-
   const questions = testingQuiz.questions;
   const cards = testQuestions.querySelectorAll(".test-question");
-  const result = { score: 0, total: 0, correct: 0, wrong: 0, unanswered: 0, percent: 0, passed: false };
+  const result = { score: 0, total: questions.length, correct: 0, wrong: 0, unanswered: 0, percent: 0, passed: false };
 
-  cards.forEach(function (card, index) {
+  cards.forEach((card, index) => {
     const question = questions[index];
-    const points = getQuestionPoints(question);
     const hasChoices = Array.isArray(question.choices) && question.choices.length > 0;
     let isCorrect = false;
     let isAnswered = false;
@@ -403,13 +236,11 @@ function submitTest() {
       isAnswered = chosenIndex !== -1;
       isCorrect = chosenIndex === correctIndex;
 
-      card.querySelectorAll(".test-choice").forEach(function (option, choiceIndex) {
+      card.querySelectorAll(".test-choice").forEach((option, choiceIndex) => {
         if (choiceIndex === correctIndex) {
           option.classList.add("correct-choice");
-          addMark(option, "correct-mark", "Correct answer");
         } else if (choiceIndex === chosenIndex) {
           option.classList.add("wrong-choice");
-          addMark(option, "wrong-mark", "Your answer");
         }
       });
     } else {
@@ -420,205 +251,87 @@ function submitTest() {
       isAnswered = typed !== "";
       isCorrect = isAnswered && typed === correctText;
       input.classList.add(isCorrect ? "correct-input" : "wrong-input");
-
-      if (!isCorrect) {
-        const feedback = document.createElement("p");
-        feedback.className = "test-answer-text";
-        feedback.textContent = "Correct answer: " + question.answer;
-        card.appendChild(feedback);
-      }
     }
 
-    // Points of this question (shown at the top of its box)
-    const earned = isCorrect ? points : 0;
-    const badge = document.createElement("span");
-    badge.className = "test-points " + (isCorrect ? "points-earned" : "points-lost");
-    badge.textContent = earned + " / " + points + (points === 1 ? " pt" : " pts");
-    card.querySelector(".test-question-number").appendChild(badge);
-
-    result.total += points;
-    result.score += earned;
-
-    if (isCorrect) {
-      result.correct++;
-    } else if (isAnswered) {
-      result.wrong++;
-    } else {
-      result.unanswered++;
-    }
+    if (isCorrect) result.correct++;
+    else if (isAnswered) result.wrong++;
+    else result.unanswered++;
   });
 
+  result.score = result.correct;
   result.percent = result.total === 0 ? 0 : Math.round((result.score / result.total) * 100);
   result.passed = result.percent >= PASSING_PERCENT;
-  testScore = result.score;
 
-  // Lock every answer
-  testForm.querySelectorAll("input").forEach(function (input) {
-    input.disabled = true;
-  });
+  testForm.querySelectorAll("input").forEach((input) => (input.disabled = true));
   testSubmitButton.hidden = true;
 
-  // Show the score right after submitting. The small Score button hides or shows it again.
   renderScoreSummary(result);
   testScoreText.hidden = false;
   testScoreButton.hidden = false;
-  testScoreButton.textContent = "Hide Score";
-  testScoreText.scrollIntoView({ block: "nearest" });
 }
 
-// Show or hide the score box (small Score button)
-function showTestScore() {
-  if (!testSubmitted) {
-    return;
-  }
-
-  testScoreText.hidden = !testScoreText.hidden;
-  testScoreButton.textContent = testScoreText.hidden ? "Score" : "Hide Score";
+function renderScoreSummary(result) {
+  testScoreText.innerHTML = `
+    <p class="score-heading">Your Score</p>
+    <p class="score-points">${result.score} / ${result.total} points</p>
+    <p class="score-percent">${result.percent}%</p>
+    <p class="score-remark ${result.passed ? "score-passed" : "score-failed"}">
+      ${result.passed ? "Passed" : "Failed"}
+    </p>
+    <p class="score-counts">Correct: ${result.correct} | Wrong: ${result.wrong} | Unanswered: ${result.unanswered}</p>
+  `;
 }
 
-// Make a random 5 digit number (10000 to 99999) as text
-function randomFiveDigits() {
-  const range = 90000;
-
-  if (window.crypto && window.crypto.getRandomValues) {
-    const numbers = new Uint32Array(1);
-    window.crypto.getRandomValues(numbers);
-    return String(10000 + (numbers[0] % range));
-  }
-
-  return String(10000 + Math.floor(Math.random() * range));
-}
-
-// true if the PIN is exactly 5 digits
-function isValidPin(pin) {
-  return /^\d{5}$/.test(String(pin ?? ""));
-}
-
-// Use the randomizer to make a PIN that no quiz in the list has yet
-function generatePin(list) {
-  let pin = randomFiveDigits();
-
-  while (list.some(function (quiz) { return quiz.pin === pin; })) {
-    pin = randomFiveDigits();
-  }
-
-  return pin;
-}
-
-// Give a new PIN to every quiz that does not have one yet (for example a quiz that was just added).
-// Returns true if any PIN was added, so the quizzes can be saved.
-function addMissingPins(list) {
-  let added = false;
-
-  list.forEach(function (quiz) {
-    if (!isValidPin(quiz.pin)) {
-      quiz.pin = generatePin(list);
-      added = true;
+async function toggleQuizState(quiz, start) {
+  try {
+    const res = await fetch(`/api/quiz/${quiz.id}/toggle-active`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: start })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      quiz.isActive = start;
+      renderTable();
     }
-  });
-
-  return added;
-}
-
-// Start the quiz: it becomes active (the button changes to End). Its PIN stays the same.
-function startQuiz(quiz) {
-  if (quiz.isActive) {
-    return;
+  } catch (err) {
+    console.error("Error updating quiz state:", err);
   }
-
-  quiz.isActive = true;
-  saveQuizzes(quizzes);
-  renderTable();
 }
 
-// End the quiz: it is not active anymore (the button changes back to Start). Its PIN stays the same.
-function endQuiz(quiz) {
-  quiz.isActive = false;
-  saveQuizzes(quizzes);
-  renderTable();
-}
-
-// Open the confirm popup. type is "start" or "end".
 function openConfirm(quiz, type) {
-  confirmAction = { type: type, quiz: quiz };
-
-  if (type === "end") {
-    confirmTitle.textContent = "End Quiz";
-    confirmMessage.textContent = 'Do you really want to end the ongoing quiz "' + quiz.title + '"?';
-    confirmOverlay.hidden = false;
-    // No is selected first, so the quiz is not ended by accident
-    confirmNoButton.focus();
-  } else {
-    confirmTitle.textContent = "Start Quiz";
-    confirmMessage.textContent = 'Do you really want to start "' + quiz.title + '"?';
-    confirmOverlay.hidden = false;
-    confirmYesButton.focus();
-  }
+  confirmAction = { type, quiz };
+  confirmTitle.textContent = type === "end" ? "End Quiz" : "Start Quiz";
+  confirmMessage.textContent = type === "end" 
+    ? `Do you really want to end "${quiz.title}"?`
+    : `Do you really want to start "${quiz.title}"?`;
+  confirmOverlay.hidden = false;
 }
 
-// Close the confirm popup
 function closeConfirm() {
   confirmAction = null;
   confirmOverlay.hidden = true;
 }
 
-// Search
-searchInput.addEventListener("input", function () {
-  currentPage = 1;
-  renderTable();
-});
-
-// Pagination buttons
-previousButton.addEventListener("click", function () {
-  currentPage--;
-  renderTable();
-});
-
-nextButton.addEventListener("click", function () {
-  currentPage++;
-  renderTable();
-});
-
-// Test box: Close, Submit and Score buttons
+// Event Listeners
+searchInput.addEventListener("input", () => { currentPage = 1; renderTable(); });
+previousButton.addEventListener("click", () => { currentPage--; renderTable(); });
+nextButton.addEventListener("click", () => { currentPage++; renderTable(); });
 testCloseButton.addEventListener("click", closeTestBox);
+testForm.addEventListener("submit", (e) => { e.preventDefault(); submitTest(); });
 
-testForm.addEventListener("submit", function (event) {
-  event.preventDefault();
-  submitTest();
-});
-
-testScoreButton.addEventListener("click", showTestScore);
-
-// Yes does what the popup asked (start or end the quiz). No only closes the popup, so nothing changes.
-confirmYesButton.addEventListener("click", function () {
-  const action = confirmAction;
+confirmYesButton.addEventListener("click", () => {
+  if (confirmAction) {
+    toggleQuizState(confirmAction.quiz, confirmAction.type === "start");
+  }
   closeConfirm();
-
-  if (!action) {
-    return;
-  }
-
-  if (action.type === "end") {
-    endQuiz(action.quiz);
-  } else {
-    startQuiz(action.quiz);
-  }
 });
-
 confirmNoButton.addEventListener("click", closeConfirm);
 
-// Close the popup with the Escape key
-document.addEventListener("keydown", function (event) {
-  if (event.key === "Escape" && !confirmOverlay.hidden) {
-    closeConfirm();
-  }
-});
+// Clear old browser cache/localStorage data if it exists
+try {
+  localStorage.removeItem("quizzes");
+} catch (e) {}
 
-// Start: load the quizzes, give a PIN to the ones that have none, then show them
-quizzes = loadQuizzes();
-
-if (addMissingPins(quizzes)) {
-  saveQuizzes(quizzes);
-}
-
-renderTable();
+// Initial load straight from the database via backend
+fetchQuizzes();
