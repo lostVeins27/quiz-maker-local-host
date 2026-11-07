@@ -75,11 +75,22 @@
 
 </div>
 
-    <!-- We Should Probably Add A Double Check Sa End Early Button Pwedeng Ma-missclick Eh-->
+    <!-- The End Early button opens the double check pop up below (so it can't be pressed by mistake) -->
     <div id="EndRefresh">
         <button type="button" id="endearlyBtn">End Early</button>
         <button type="button" id="refreshBtn">Refresh</button>
     </div>
+
+    <!--pop up that asks if the user really wants to end the quiz (opened by the JavaScript)-->
+    <dialog id="endEarlyDialog" aria-labelledby="endEarlyTitle">
+        <h2 id="endEarlyTitle">End Quiz Early</h2>
+        <p id="endEarlyText">Are you sure you want to end the quiz now?</p>
+        <p id="endEarlyError"></p>
+        <div id="endEarlyActions">
+            <button type="button" id="endEarlyNoBtn" autofocus>No</button>
+            <button type="button" id="endEarlyYesBtn">Yes</button>
+        </div>
+    </dialog>
 
     <script src="{{ url_for('static', filename='result.js')}}" defer></script>
 </body>

@@ -166,7 +166,99 @@
     background-color: rgb(241, 67, 67);
 }
 
-#endearlyBtn:hover,
+#endearlyBtn:hover:not(:disabled),
 #refreshBtn:hover {
     transform: scale(1.1);
+}
+
+/*end early button after the quiz has ended*/
+#endearlyBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/*end early confirmation pop up (Yes / No)*/
+#endEarlyDialog {
+    width: calc(100% - 32px);
+    max-width: 420px;
+    padding: 24px;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+#endEarlyDialog::backdrop {
+    background: rgba(31, 41, 55, 0.5);
+}
+
+#endEarlyTitle {
+    margin: 0 0 12px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+#endEarlyText {
+    margin: 0;
+    font-size: 18px;
+}
+
+/*error shown in the pop up when the quiz could not be ended*/
+#endEarlyError {
+    margin: 12px 0 0;
+    color: #b00020;
+    font-size: 14px;
+}
+
+#endEarlyError:empty {
+    display: none;
+}
+
+#endEarlyActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/*no button (white)*/
+#endEarlyNoBtn {
+    padding: 10px 22px;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#endEarlyNoBtn:hover:not(:disabled) {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+/*yes button (same red as the end early button)*/
+#endEarlyYesBtn {
+    padding: 10px 22px;
+    font-family: inherit;
+    font-size: 16px;
+    color: white;
+    background: rgb(241, 67, 67);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#endEarlyYesBtn:hover:not(:disabled) {
+    background: #dc2626;
+}
+
+#endEarlyNoBtn:disabled,
+#endEarlyYesBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
