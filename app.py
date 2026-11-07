@@ -24,6 +24,40 @@ def init_db():
     )
     """)
 
+    # Create quiz table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS quiz (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        professor_email TEXT
+    )
+    """)
+
+    # Create question table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS question (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        quiz_id INTEGER,
+        question_number INTEGER,
+        text TEXT NOT NULL,
+        type TEXT NOT NULL,
+        correct_answer TEXT NOT NULL,
+        FOREIGN KEY (quiz_id) REFERENCES quiz(id) ON DELETE CASCADE
+    )
+    """)
+
+    # Create choice table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS choice (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        question_id INTEGER,
+        label TEXT NOT NULL,
+        text TEXT NOT NULL,
+        FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE
+    )
+    """)
+
     # Check if test user already exists, if not, insert them
     cursor.execute("SELECT * FROM users WHERE email = ?", ('email@example.com',))
     if not cursor.fetchone():
