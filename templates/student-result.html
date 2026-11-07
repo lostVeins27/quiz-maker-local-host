@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="free website to make quizzes" />
+    <meta name="author" content="Zion, Daniel, Isel" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Results</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='student-result.css')}}" />
+  </head>
+
+  <body>
+    <main id="main-student-result-page">
+
+      <!--top part: page info, title and dashboard button-->
+      <header id="result-header">
+        <div id="result-intro">
+          <h2 id="result-intro-title">Completed Quizzes</h2>
+          <p id="result-intro-text">Click a quiz to see its details</p>
+        </div>
+
+        <h1 id="result-title">Results</h1>
+
+        <a href="/dashboard" id="dashboard-button">To Dashboard</a>
+      </header>
+
+      <!--table of the completed quizzes (rows are added by student-result.js)-->
+      <div id="result-table-wrapper">
+        <table id="result-table">
+          <thead>
+            <tr>
+              <th scope="col">Quiz Name</th>
+              <th scope="col">Score</th>
+              <th scope="col">Date Answered</th>
+            </tr>
+          </thead>
+          <tbody id="result-table-body"></tbody>
+        </table>
+
+        <!--loading, empty and error messages are written here by student-result.js-->
+        <p id="result-status" role="status" aria-live="polite">Loading results...</p>
+      </div>
+    </main>
+
+    <script src="{{url_for('static', filename='student-result.js')}}" defer></script>
+  </body>
+</html>

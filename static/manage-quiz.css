@@ -151,6 +151,7 @@
 #quiz-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 #quiz-table th,
@@ -160,7 +161,9 @@
   border-bottom: 1px solid var(--border);
 }
 
+/*three equal columns: quiz title, questions and actions*/
 #quiz-table th {
+  width: 33.33%;
   font-weight: 600;
 }
 

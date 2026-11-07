@@ -85,6 +85,7 @@ def get_current_user():
     cursor.execute(
         "SELECT * FROM users where email = ?", (session["user_email"],)
     )
+
     user = cursor.fetchone()
     conn.close()
 
@@ -202,14 +203,12 @@ def logout():
 @app.route("/dashboard")
 def dashboard():
 
-    if "role" not in session:
-        return redirect(url_for("login_page"))
-
-    user_role = session.get("role")
-
     user = get_current_user()
 
-    match user_role:
+    if not user:
+        return redirect(url_for("login_page"))
+
+    match user["role"]:
         case "student":
             return render_template("student-dashboard.html", user = user)
         case "professor":
@@ -242,9 +241,21 @@ def view_users():
 
 @app.route("/result")
 def result():
+
     user = get_current_user()
+
     if not user:
         return redirect(url_for("login_page"))
+
+    match user["role"]:
+            case "student":
+                return render_template("student-result.html")
+            case "professor":
+                return render_template("professor-result.html")
+            case _:
+                return "Unauthorized role", 403
+
+    
     
     return render_template("result.html", user=user)
 
@@ -264,6 +275,7 @@ def create_quiz():
         return redirect(url_for("dashboard"))
 
     return render_template("create-quiz.html")
+
 
 if __name__ == "__main__":
     init_db()
