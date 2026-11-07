@@ -9,9 +9,6 @@ function getResultsEndpoint(quizId) {
   return `/quizzes/${encodeURIComponent(quizId)}/results`;
 }
 
-// POST this address with {"quizId": ...} as JSON: must answer {"success": true} when the quiz was ended.
-const END_QUIZ_ENDPOINT = "/end-quiz";
-
 // The dashboard page.
 const DASHBOARD_PAGE_URL = "dashboard.html";
 
@@ -29,8 +26,8 @@ const QUIZ_LIST_PAGE_URL = "professor-result-main.html";
 // If your backend uses other names, change only normalizeResultsData() below.
 
 // ---- Simulation (for testing without a backend) ----
-// true  = the page uses the sample quizzes below and never contacts the backend (ending a quiz only affects the page, and a reload brings it back).
-// false = the page loads and ends the real quiz using the addresses above.
+// true  = the page uses the sample quizzes below and never contacts the backend.
+// false = the page loads the real results using the address above.
 const USE_SAMPLE_DATA = true;
 
 // The sample quizzes shown while USE_SAMPLE_DATA is true. The keys are the quiz ids from the quiz list.
@@ -61,20 +58,12 @@ const resultsTitle = document.getElementById("resultsTitle");
 const submittedCount = document.getElementById("submittedCount");
 const averageScore = document.getElementById("averageScore");
 const timeRemaining = document.getElementById("timeRemaining");
-const endearlyBtn = document.getElementById("endearlyBtn");
 const refreshBtn = document.getElementById("refreshBtn");
 const resultsMessage = document.getElementById("resultsMessage");
 const resultRows = document.getElementById("resultRows");
-const endEarlyDialog = document.getElementById("endEarlyDialog");
-const endEarlyError = document.getElementById("endEarlyError");
-const endEarlyYesBtn = document.getElementById("endEarlyYesBtn");
-const endEarlyNoBtn = document.getElementById("endEarlyNoBtn");
 
 // The quiz that was pressed in the quiz list (the address looks like /result?quizId=1).
 const quizId = new URLSearchParams(window.location.search).get("quizId");
-
-// true while the request to end the quiz is being sent, so it can't be sent twice.
-let isEnding = false;
 
 // Counts every load, so an old answer from the backend can be ignored.
 let loadRequestId = 0;
@@ -94,12 +83,9 @@ function showMessage(message, status) {
   }
 }
 
-// Writes "Active" or "Ended". The End Early button only works while the quiz is active.
+// Writes "Active" or "Ended".
 function setStatus(status) {
-  const isActive = status === "active";
-
-  quizStatus.textContent = isActive ? "Active" : "Ended";
-  endearlyBtn.disabled = !isActive;
+  quizStatus.textContent = status === "active" ? "Active" : "Ended";
 }
 
 // Writes the time remaining as minutes:seconds, for example 09:05.
@@ -268,80 +254,6 @@ backToListBtn.addEventListener("click", function () {
 
 // Refresh button: loads the results again and keeps the same quiz open.
 refreshBtn.addEventListener("click", loadResults);
-
-// End Early button: does not end anything yet, it only opens the "Are you sure?" pop up.
-endearlyBtn.addEventListener("click", function () {
-  endEarlyError.textContent = "";
-  endEarlyDialog.showModal();
-});
-
-// While ending: lock the pop up buttons and show "Ending...", so the request is not sent twice.
-function setEndingState(ending) {
-  isEnding = ending;
-  endEarlyYesBtn.disabled = ending;
-  endEarlyNoBtn.disabled = ending;
-  endEarlyYesBtn.textContent = ending ? "Ending..." : "Yes";
-}
-
-// Pop up: Yes ends the quiz.
-endEarlyYesBtn.addEventListener("click", async function () {
-  if (isEnding) {
-    return;
-  }
-
-  setEndingState(true);
-  endEarlyError.textContent = "";
-
-  try {
-    let ended = true;
-    let failMessage = "";
-
-    // Simulation: no request is sent, the sample quiz is ended instead.
-    if (USE_SAMPLE_DATA) {
-      if (SAMPLE_RESULTS[quizId]) {
-        SAMPLE_RESULTS[quizId].quiz.status = "ended";
-        SAMPLE_RESULTS[quizId].quiz.timeRemainingSeconds = 0;
-      }
-    } else {
-      const response = await fetch(END_QUIZ_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quizId }),
-      });
-      const data = await response.json();
-
-      // The quiz only counts as ended if the backend answers with {"success": true}
-      ended = response.ok && data.success;
-      failMessage = data.message;
-    }
-
-    if (ended) {
-      endEarlyDialog.close();
-      setStatus("ended");
-      startCountdown(0);
-    } else {
-      endEarlyError.textContent = failMessage || "The quiz could not be ended.";
-    }
-  } catch (error) {
-    // This runs when the request could not be sent or the reply was not JSON
-    console.error("Ending the quiz failed:", error);
-    endEarlyError.textContent = "Something went wrong. The quiz has not been ended. Try again.";
-  } finally {
-    setEndingState(false);
-  }
-});
-
-// Pop up: No closes it and nothing happens to the quiz.
-endEarlyNoBtn.addEventListener("click", function () {
-  endEarlyDialog.close();
-});
-
-// Stop the Escape key from closing the pop up while the quiz is being ended.
-endEarlyDialog.addEventListener("cancel", function (event) {
-  if (isEnding) {
-    event.preventDefault();
-  }
-});
 
 // When the page opens, load the results of the quiz that was pressed.
 loadResults();

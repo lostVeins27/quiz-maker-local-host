@@ -4,7 +4,8 @@
 // ---- Backend addresses (they must match the routes in the backend) ----
 // NOTE: these are the only parts that depend on your backend. Change them to your real routes.
 // GET this address: must answer {"success": true, "quizzes": [ ... ]}
-// Each quiz needs an "id" and a "title".
+// Each quiz needs an "id" and a "title". It can also have "submittedCount" (how many students submitted)
+// and "isActive" (true or false). If your backend uses other names, change only normalizeQuiz().
 const QUIZ_LIST_ENDPOINT = "/quizzes";
 
 // The page that opens when a quiz is pressed (professor-result.html).
@@ -30,9 +31,9 @@ const USE_SAMPLE_DATA = true;
 
 // The sample quizzes shown while USE_SAMPLE_DATA is true.
 const SAMPLE_QUIZZES = [
-  { id: 1, title: "Local History Quiz" },
-  { id: 2, title: "Basic Geography Quiz" },
-  { id: 3, title: "Science Midterm Quiz" },
+  { id: 1, title: "Local History Quiz", submittedCount: 3, isActive: true },
+  { id: 2, title: "Basic Geography Quiz", submittedCount: 1, isActive: true },
+  { id: 3, title: "Science Midterm Quiz", submittedCount: 0, isActive: false },
 ];
 
 // Find each element on the page once, then reuse these variables.
@@ -71,11 +72,24 @@ function showListMessage(message, status) {
   }
 }
 
+// true if the backend says the quiz is active (isActive true, or status "active")
+function isQuizActive(quiz) {
+  if (typeof quiz.isActive === "boolean") {
+    return quiz.isActive;
+  }
+  if (typeof quiz.is_active === "boolean") {
+    return quiz.is_active;
+  }
+  return String(quiz.status ?? "").toLowerCase() === "active";
+}
+
 // Turns one quiz from the backend into the shape this page uses.
 function normalizeQuiz(quiz) {
   return {
     id: quiz.id,
     title: String(quiz.title ?? ""),
+    submittedCount: Math.max(0, Math.floor(Number(quiz.submittedCount ?? quiz.submitted_count ?? quiz.submitted)) || 0),
+    isActive: isQuizActive(quiz),
   };
 }
 
@@ -102,7 +116,21 @@ function createQuizRow(quiz) {
   titleLink.setAttribute("aria-label", `View results of ${quiz.title}`);
 
   titleCell.appendChild(titleLink);
-  row.appendChild(titleCell);
+
+  // Middle column: how many students submitted, written like #3
+  const submittedCell = document.createElement("td");
+  submittedCell.dataset.label = "Submitted";
+  submittedCell.textContent = `#${quiz.submittedCount}`;
+
+  // Last column: is the quiz active or not
+  const statusCell = document.createElement("td");
+  statusCell.dataset.label = "Status";
+  const statusBadge = document.createElement("span");
+  statusBadge.className = `quiz-status ${quiz.isActive ? "is-active" : "is-inactive"}`;
+  statusBadge.textContent = quiz.isActive ? "Active" : "Not active";
+  statusCell.appendChild(statusBadge);
+
+  row.append(titleCell, submittedCell, statusCell);
   return row;
 }
 

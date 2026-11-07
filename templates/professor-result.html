@@ -42,12 +42,11 @@
 
 </div> 
     
-    <!-- End Early and Refresh are now next to each other. The End Early button stays disabled until the quiz is loaded and active. -->
-    <div id="EndRefresh">
-        <button type="button" id="endearlyBtn" disabled>End Early</button>
+    <!-- Refresh button: between the summary box and the results table, on the right -->
+    <div id="RefreshArea">
         <button type="button" id="refreshBtn">Refresh</button>
     </div>
-    
+
     <div id="studentResults">
 
     <!-- Table Header -->
@@ -64,17 +63,6 @@
     <div id="resultRows"></div>
 
 </div>
-
-    <!--pop up that asks if the user really wants to end the quiz (opened by the JavaScript)-->
-    <dialog id="endEarlyDialog" aria-labelledby="endEarlyTitle">
-        <h2 id="endEarlyTitle">End Quiz Early</h2>
-        <p id="endEarlyText">Are you sure you want to end the quiz now?</p>
-        <p id="endEarlyError"></p>
-        <div id="endEarlyActions">
-            <button type="button" id="endEarlyNoBtn" autofocus>No</button>
-            <button type="button" id="endEarlyYesBtn">Yes</button>
-        </div>
-    </dialog>
 
     <script src="{{ url_for('static', filename='professor-result.js') }}" defer></script>
 </body>

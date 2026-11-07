@@ -198,6 +198,14 @@
     order: 2;
 }
 
+/*refresh button area: between the summary box and the table, button on the right (same width as the boxes)*/
+#RefreshArea {
+    display: flex;
+    justify-content: flex-end;
+    width: 85%;
+    order: 2;
+}
+
 #endearlyBtn,
 #refreshBtn {
      padding: 28px 20px;
@@ -216,6 +224,7 @@
 #endearlyBtn {
     background-color: rgb(241, 67, 67);
 }
+
 
 #endearlyBtn:hover:not(:disabled),
 #refreshBtn:hover:not(:disabled) {
