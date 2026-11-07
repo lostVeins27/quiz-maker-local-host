@@ -5,7 +5,7 @@ const LogoutBtn = document.getElementById("logoutBtn");
 
 //Take quiz page redirect
 TakeQuizBtn.addEventListener("click", function () {
-  window.location.href = "student_dashboard/Take-quiz.html";
+  window.location.href = "/quiz-pin";
 });
 
 //result page redirect

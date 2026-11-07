@@ -555,6 +555,20 @@ def start_quiz():
 
     return render_template("start-quiz.html")
 
+@app.route("/quiz-pin")
+def quiz_pin():
+    if "role" not in session or session["role"] != "student":
+        return redirect(url_for("dashboard"))
+
+    return render_template("take-quiz-pin.html")
+
+@app.route("/take-quiz")
+def take_quiz():
+    if "role" not in session or session["role"] != "student":
+        return redirect(url_for("dashboard"))
+
+    return render_template("take-quiz.html")
+
 
 if __name__ == "__main__":
     init_db()

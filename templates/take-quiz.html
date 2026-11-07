@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Take Quiz</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='take-quiz.css') }}" />
+  </head>
+
+  <body id="page-body">
+    <main id="main-take-quiz-page">
+
+      <!--the JavaScript writes the quiz title here-->
+      <h1 id="page-title">Take Quiz</h1>
+
+      <!--loading or error message (the JavaScript fills it), and a button back to the PIN page if the quiz could not be opened-->
+      <p id="page-message" role="status" aria-live="polite"></p>
+      <button type="button" id="back-to-pin-btn" hidden>Back to PIN Page</button>
+
+      <!--box with the description or instructions (the JavaScript hides it when the quiz has none)-->
+      <section id="quiz-information" hidden>
+        <h2 id="quiz-information-legend">Description / Instructions</h2>
+        <p id="quiz-description"></p>
+      </section>
+
+      <!--form with the questions (the JavaScript shows it when the quiz is loaded)-->
+      <form id="quiz-form" novalidate hidden>
+
+        <!--questions part-->
+        <section id="questions-section" aria-labelledby="questions-heading">
+          <h2 id="questions-heading">Questions</h2>
+
+          <!--the JavaScript adds each question box in here-->
+          <div id="questions-container"></div>
+        </section>
+
+        <!--submit quiz button-->
+        <button type="submit" id="submit-quiz-btn">Submit Quiz</button>
+
+        <!--message shown after pressing submit (success, error or warning)-->
+        <p id="form-message" role="status" aria-live="polite"></p>
+
+        <!--shown after the quiz is submitted-->
+        <button type="button" id="dashboard-btn" hidden>Back to Dashboard</button>
+      </form>
+    </main>
+
+    <!--pop up that asks if the user really wants to submit the quiz (opened by the JavaScript)-->
+    <dialog id="submit-confirm-dialog" aria-labelledby="submit-confirm-title">
+      <h2 id="submit-confirm-title">Submit Quiz</h2>
+      <p id="submit-confirm-text">Are you sure you want to submit this quiz?</p>
+      <div id="submit-confirm-actions">
+        <button type="button" id="submit-confirm-no-btn" autofocus>No</button>
+        <button type="button" id="submit-confirm-yes-btn">Yes</button>
+      </div>
+    </dialog>
+
+    <script src="{{ url_for('static', filename='take-quiz.js') }}"></script>
+  </body>
+</html>
