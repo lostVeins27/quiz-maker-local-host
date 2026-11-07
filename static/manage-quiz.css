@@ -182,15 +182,16 @@
   opacity: 0.7;
 }
 
-/*edit and delete buttons next to each other*/
+/*edit, test and delete buttons next to each other*/
 .quiz-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-/*edit link and delete button (same style as the add question button)*/
+/*edit link, test and delete buttons (same style as the add question button)*/
 .edit-quiz-link,
+.test-quiz-btn,
 .delete-quiz-btn,
 #previous-page-btn,
 #next-page-btn,
@@ -207,8 +208,9 @@
   transition: background 0.2s, border-color 0.2s;
 }
 
-/*hovering the edit link or the page buttons: blue*/
+/*hovering the edit link, test button or page buttons: blue*/
 .edit-quiz-link:hover,
+.test-quiz-btn:hover,
 #previous-page-btn:hover:not(:disabled),
 #next-page-btn:hover:not(:disabled),
 #cancel-delete-btn:hover {

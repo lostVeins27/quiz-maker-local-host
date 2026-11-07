@@ -144,6 +144,14 @@ function createQuizRow(quiz) {
   editLink.textContent = "Edit";
   editLink.setAttribute("aria-label", `Edit quiz ${quiz.title}`);
 
+  // Test button (no function yet)
+  const testButton = document.createElement("button");
+  testButton.type = "button";
+  testButton.className = "test-quiz-btn";
+  testButton.dataset.id = quiz.id;
+  testButton.textContent = "Test";
+  testButton.setAttribute("aria-label", `Test quiz ${quiz.title}`);
+
   const deleteButton = document.createElement("button");
   deleteButton.type = "button";
   deleteButton.className = "delete-quiz-btn";
@@ -151,7 +159,7 @@ function createQuizRow(quiz) {
   deleteButton.textContent = "Delete";
   deleteButton.setAttribute("aria-label", `Delete quiz ${quiz.title}`);
 
-  actions.append(editLink, deleteButton);
+  actions.append(editLink, testButton, deleteButton);
   actionsCell.appendChild(actions);
 
   row.append(titleCell, questionsCell, actionsCell);
