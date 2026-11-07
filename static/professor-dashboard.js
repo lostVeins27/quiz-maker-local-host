@@ -11,12 +11,12 @@ createQuizBtn.addEventListener("click", function () {
 
 //manage quiz page redirect
 manageQuizBtn.addEventListener("click", function () {
-  window.location.href = "manage-quiz.html";
+  window.location.href = "/manage-quiz";
 });
 
 //start quiz page redirect
 startQuizBtn.addEventListener("click", function () {
-  window.location.href = "start-quiz.html";
+  window.location.href = "/start-quiz";
 });
 
 //result page redirect

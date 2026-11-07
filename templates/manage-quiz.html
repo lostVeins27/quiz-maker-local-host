@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Quizzes</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='manage-quiz.css')}}" />
+  </head>
+
+  <body id="page-body">
+    <main id="main-manage-quiz-page">
+
+      <!--page header: title, short description and the create quiz link-->
+      <header id="page-header">
+        <div id="page-heading">
+          <h1 id="page-title">Manage Quizzes</h1>
+          <p id="page-description">View, search, edit, and delete your quizzes.</p>
+        </div>
+        <a id="create-quiz-link" href="#">Create Quiz</a>
+      </header>
+
+      <!--notice shown by the JavaScript when the quiz list is not connected yet-->
+      <p id="api-status-notice" hidden>
+        The quiz list is not connected to the backend yet, so no quizzes can be shown.
+      </p>
+
+      <!--white box with the search bar, the quiz table and the pagination-->
+      <section id="quiz-list-section" aria-labelledby="quiz-list-heading">
+        <h2 id="quiz-list-heading" class="visually-hidden">Quiz List</h2>
+
+        <!--search bar-->
+        <div id="quiz-toolbar">
+          <label for="quiz-search" class="visually-hidden">Search quizzes by title</label>
+          <input type="search" id="quiz-search" placeholder="Search quiz by title..." autocomplete="off" />
+        </div>
+
+        <!--the JavaScript fills this table with the quizzes of the current page-->
+        <div id="quiz-table-wrapper">
+          <table id="quiz-table">
+            <thead>
+              <tr>
+                <th scope="col">Quiz Title</th>
+                <th scope="col">Questions</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="quiz-table-body"></tbody>
+          </table>
+        </div>
+
+        <!--loading, empty, no results or error message (the JavaScript fills it)-->
+        <p id="quiz-list-message" role="status" aria-live="polite"></p>
+
+        <!--pagination-->
+        <nav id="pagination" aria-label="Quiz list pages" hidden>
+          <p id="pagination-info"></p>
+          <div id="pagination-controls">
+            <button type="button" id="previous-page-btn">Previous</button>
+            <span id="page-indicator"></span>
+            <button type="button" id="next-page-btn">Next</button>
+          </div>
+        </nav>
+      </section>
+
+      <!--message shown after deleting a quiz (success or error)-->
+      <p id="form-message" role="status" aria-live="polite"></p>
+    </main>
+
+    <!--delete confirmation dialog-->
+    <dialog id="delete-dialog" aria-labelledby="delete-dialog-title">
+      <h2 id="delete-dialog-title">Delete Quiz</h2>
+      <p id="delete-dialog-text"></p>
+      <p class="error-message" id="delete-dialog-error"></p>
+      <div id="delete-dialog-actions">
+        <button type="button" id="cancel-delete-btn">Cancel</button>
+        <button type="button" id="confirm-delete-btn">Delete</button>
+      </div>
+    </dialog>
+
+    <script src="{{url_for('static', filename='manage-quiz.js')}}" defer></script>
+  </body>
+</html>

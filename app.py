@@ -214,6 +214,14 @@ def result():
     
     return render_template("result.html", user=user)
 
+@app.route("/manage-quiz")
+def manage_quiz():
+
+    if "role" not in session or session["role"] != "professor":
+        return redirect(url_for("dashboard"))
+
+    return render_template("manage-quiz.html")
+
 
 @app.route("/create-quiz")
 def create_quiz():
