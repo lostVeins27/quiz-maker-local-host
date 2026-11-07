@@ -11,10 +11,15 @@ function getDeleteEndpoint(quizId) {
   return `/quizzes/${encodeURIComponent(quizId)}`;
 }
 
-// The page that edits a quiz. It is in the same folder as this page, and the quiz id
-// is added to the address (edit-quiz.html?id=3), so the edit page knows which quiz to open.
-function getEditPageUrl(quizId) {
-  return `edit-quiz.html?id=${encodeURIComponent(quizId)}`;
+// GET this address: must answer {"success": true, "quiz": { ... }} with the title, description
+// and questions of one quiz (see "How a quiz looks" below). It is used when Edit is pressed.
+function getQuizEndpoint(quizId) {
+  return `/quizzes/${encodeURIComponent(quizId)}`;
+}
+
+// PUT this address with the edited quiz as JSON: must answer {"success": true}
+function getUpdateEndpoint(quizId) {
+  return `/quizzes/${encodeURIComponent(quizId)}`;
 }
 
 // The page that creates a quiz.
@@ -26,14 +31,66 @@ const DASHBOARD_PAGE_URL = "/dashboard";
 // How many quizzes are shown on one page.
 const QUIZZES_PER_PAGE = 10;
 
+// ---- How a quiz looks (the edit box reads and sends this shape) ----
+// {
+//   title: "Quiz title",
+//   description: "Short description",
+//   questions: [
+//     { type: "multiple_choice", text: "Question?", choices: { A: "..", B: "..", C: "..", D: ".." }, correctAnswer: "B" },
+//     { type: "identification", text: "Question?", correctAnswer: "The answer" }
+//   ]
+// }
+// If your backend uses other names, change only normalizeQuestion() and buildQuizPayload() below.
+
+// The letters of the four choices of a multiple choice question.
+const CHOICE_LETTERS = ["A", "B", "C", "D"];
+
+// The two question types.
+const MULTIPLE_CHOICE = "multiple_choice";
+const IDENTIFICATION = "identification";
+
 // ---- Simulation (for testing without a backend) ----
-// true  = the page uses the sample quiz below and never contacts the backend (a delete only affects the page, and a refresh brings the quiz back).
-// false = the page loads and deletes real quizzes using the addresses above.
+// true  = the page uses the sample quiz below and never contacts the backend (a delete or an edit only affects the page, and a refresh brings the quiz back).
+// false = the page loads, edits and deletes real quizzes using the addresses above.
 const USE_SAMPLE_DATA = true;
 
 // The sample quiz shown while USE_SAMPLE_DATA is true.
 const SAMPLE_QUIZZES = [
-  { id: 1, title: "Local History Quiz", questionCount: 5 },
+  {
+    id: 1,
+    title: "Local History Quiz",
+    description: "Questions about the history of our town.",
+    questions: [
+      {
+        type: MULTIPLE_CHOICE,
+        text: "In what year was the town founded?",
+        choices: { A: "1850", B: "1875", C: "1900", D: "1925" },
+        correctAnswer: "B",
+      },
+      {
+        type: IDENTIFICATION,
+        text: "What is the name of the oldest building in the town square?",
+        correctAnswer: "Old Town Hall",
+      },
+      {
+        type: MULTIPLE_CHOICE,
+        text: "Which industry first brought settlers to the area?",
+        choices: { A: "Farming", B: "Mining", C: "Fishing", D: "Shipping" },
+        correctAnswer: "A",
+      },
+      {
+        type: IDENTIFICATION,
+        text: "Who was the first mayor of the town?",
+        correctAnswer: "Samuel Reyes",
+      },
+      {
+        type: MULTIPLE_CHOICE,
+        text: "Which event is held in the town every spring?",
+        choices: { A: "Harvest Festival", B: "Founders Day", C: "Flower Parade", D: "Boat Race" },
+        correctAnswer: "C",
+      },
+    ],
+  },
 ];
 
 // Find each element on the page once, then reuse these variables.
@@ -55,9 +112,27 @@ const deleteDialogText = document.getElementById("delete-dialog-text");
 const deleteDialogError = document.getElementById("delete-dialog-error");
 const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
 const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+const editQuizSection = document.getElementById("edit-quiz-section");
+const editQuizHeading = document.getElementById("edit-quiz-heading");
+const editQuizStatus = document.getElementById("edit-quiz-status");
+const editQuizForm = document.getElementById("edit-quiz-form");
+const editQuizFieldset = document.getElementById("edit-quiz-fieldset");
+const editQuizTitle = document.getElementById("edit-quiz-title");
+const editQuizTitleError = document.getElementById("edit-quiz-title-error");
+const editQuizDescription = document.getElementById("edit-quiz-description");
+const editQuestionsList = document.getElementById("edit-questions-list");
+const editQuestionsError = document.getElementById("edit-questions-error");
+const newQuestionType = document.getElementById("new-question-type");
+const addQuestionBtn = document.getElementById("add-question-btn");
+const editQuizError = document.getElementById("edit-quiz-error");
+const cancelEditBtn = document.getElementById("cancel-edit-btn");
+const saveQuizBtn = document.getElementById("save-quiz-btn");
 
 // Every quiz received from the backend.
 let allQuizzes = [];
+
+// The full sample quizzes (only used while USE_SAMPLE_DATA is true). Saving an edit changes this copy.
+let sampleQuizDetails = [];
 
 // The page number being shown (starts at 1).
 let currentPage = 1;
@@ -68,11 +143,39 @@ let quizToDelete = null;
 // true while a delete request is being sent, so it can't be sent twice.
 let isDeleting = false;
 
+// The quiz shown in the edit box (null when the edit box is closed).
+let editingQuiz = null;
+
+// The edit form as it was when it opened. It is used to know if there are unsaved changes.
+let editSnapshot = "";
+
+// true while the edited quiz is being saved, so it can't be sent twice.
+let isSaving = false;
+
+// Counts every Edit press, so an old answer from the backend can be ignored.
+let openRequestId = 0;
+
+// Gives every question in the edit box its own number for the ids (they are never reused).
+let nextQuestionUid = 1;
+
 // ---- Small helpers ----
 // Shows or hides an element.
 function setVisible(element, isVisible) {
   element.hidden = !isVisible;
   element.style.display = isVisible ? "" : "none";
+}
+
+// Makes an element with an optional class name and text.
+function createElement(tagName, className, text) {
+  const element = document.createElement(tagName);
+
+  if (className) {
+    element.className = className;
+  }
+  if (text !== undefined) {
+    element.textContent = text;
+  }
+  return element;
 }
 
 // Shows a message under the page. status is "success", "error" or "warning".
@@ -138,11 +241,13 @@ function createQuizRow(quiz) {
   const actions = document.createElement("div");
   actions.className = "quiz-actions";
 
-  const editLink = document.createElement("a");
-  editLink.className = "edit-quiz-link";
-  editLink.href = getEditPageUrl(quiz.id);
-  editLink.textContent = "Edit";
-  editLink.setAttribute("aria-label", `Edit quiz ${quiz.title}`);
+  // Edit button (opens the edit box below the list)
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.className = "edit-quiz-btn";
+  editButton.dataset.id = quiz.id;
+  editButton.textContent = "Edit";
+  editButton.setAttribute("aria-label", `Edit quiz ${quiz.title}`);
 
   // Test button (no function yet)
   const testButton = document.createElement("button");
@@ -159,7 +264,7 @@ function createQuizRow(quiz) {
   deleteButton.textContent = "Delete";
   deleteButton.setAttribute("aria-label", `Delete quiz ${quiz.title}`);
 
-  actions.append(editLink, testButton, deleteButton);
+  actions.append(editButton, testButton, deleteButton);
   actionsCell.appendChild(actions);
 
   row.append(titleCell, questionsCell, actionsCell);
@@ -208,6 +313,7 @@ async function loadQuizzes() {
 
   // Simulation: use the sample quiz instead of asking the backend.
   if (USE_SAMPLE_DATA) {
+    sampleQuizDetails = JSON.parse(JSON.stringify(SAMPLE_QUIZZES));
     allQuizzes = SAMPLE_QUIZZES.map(normalizeQuiz);
     renderQuizList();
     return;
@@ -276,6 +382,12 @@ async function confirmDelete() {
     if (deleted) {
       allQuizzes = allQuizzes.filter((item) => item.id !== quiz.id);
       deleteDialog.close();
+
+      // If this quiz is open in the edit box, close the box too.
+      if (editingQuiz && String(editingQuiz.id) === String(quiz.id)) {
+        closeEditBox();
+      }
+
       renderQuizList();
       showFormMessage(`"${quiz.title}" was deleted.`, "success");
     } else {
@@ -286,6 +398,482 @@ async function confirmDelete() {
     deleteDialogError.textContent = "Something went wrong. The quiz has not been deleted. Try again.";
   } finally {
     setDeletingState(false);
+  }
+}
+
+// ---- Editing: reading a quiz from the backend ----
+// Works out the type of a question. A question with choices is multiple choice.
+function getQuestionType(question) {
+  const type = String(question.type ?? "").toLowerCase().replace(/[^a-z]+/g, "_");
+
+  if (type === MULTIPLE_CHOICE || type === IDENTIFICATION) {
+    return type;
+  }
+  return question.choices ? MULTIPLE_CHOICE : IDENTIFICATION;
+}
+
+// Returns the four choices as a list of text (A, B, C, D). Missing choices are empty.
+function getChoices(question) {
+  const source = question.choices ?? {};
+
+  return CHOICE_LETTERS.map((letter, index) => {
+    const choice = Array.isArray(source) ? source[index] : source[letter] ?? source[letter.toLowerCase()];
+    return String(choice ?? "");
+  });
+}
+
+// Turns one question from the backend into the shape the edit box uses.
+function normalizeQuestion(question) {
+  const type = getQuestionType(question);
+  const choices = getChoices(question);
+  const text = String(question.text ?? question.question ?? "");
+  let correctAnswer = String(question.correctAnswer ?? question.correct_answer ?? question.answer ?? "").trim();
+
+  // A multiple choice answer is a letter (A to D). The text of the choice is also accepted.
+  if (type === MULTIPLE_CHOICE) {
+    const letter = correctAnswer.toUpperCase();
+
+    if (CHOICE_LETTERS.includes(letter)) {
+      correctAnswer = letter;
+    } else {
+      const choiceIndex = choices.indexOf(correctAnswer);
+      correctAnswer = choiceIndex === -1 ? "" : CHOICE_LETTERS[choiceIndex];
+    }
+  }
+
+  return { type, text, choices, correctAnswer };
+}
+
+// Turns one full quiz from the backend into the shape the edit box uses.
+function normalizeQuizDetails(quiz) {
+  return {
+    id: quiz.id,
+    title: String(quiz.title ?? ""),
+    description: String(quiz.description ?? ""),
+    questions: Array.isArray(quiz.questions) ? quiz.questions.map(normalizeQuestion) : [],
+  };
+}
+
+// ---- Editing: the questions in the edit box ----
+// An empty question of the chosen type (used by the Add Question button).
+function createEmptyQuestion(type) {
+  return { type, text: "", choices: ["", "", "", ""], correctAnswer: "" };
+}
+
+// Makes the box of one question. Every question has its own number (uid) for the ids and radio names.
+function createQuestionCard(question) {
+  const uid = nextQuestionUid;
+  nextQuestionUid += 1;
+
+  const card = createElement("div", "question-card");
+  card.dataset.type = question.type;
+
+  // Top row: question number, question type and the remove button
+  const header = createElement("div", "question-header");
+  const number = createElement("h4", "question-number");
+  const typeLabel = createElement(
+    "span",
+    "question-type-label",
+    question.type === MULTIPLE_CHOICE ? "Multiple Choice" : "Identification"
+  );
+  const removeButton = createElement("button", "remove-question-btn", "Remove");
+  removeButton.type = "button";
+  header.append(number, typeLabel, removeButton);
+
+  // The question text
+  const textLabel = createElement("label", "edit-label", "Question");
+  textLabel.htmlFor = `question-text-${uid}`;
+  const textInput = createElement("textarea", "edit-input question-text-input");
+  textInput.id = `question-text-${uid}`;
+  textInput.rows = 2;
+  textInput.value = question.text;
+
+  card.append(header, textLabel, textInput);
+
+  if (question.type === MULTIPLE_CHOICE) {
+    // The four choices, each with a radio button to select the correct one
+    const choicesGroup = createElement("fieldset", "choices-fieldset");
+    choicesGroup.append(createElement("legend", "edit-label", "Choices (select the correct answer)"));
+
+    CHOICE_LETTERS.forEach((letter, index) => {
+      const row = createElement("div", "choice-row");
+
+      const radioLabel = createElement("label", "choice-radio-label");
+      const radio = createElement("input", "correct-choice-input");
+      radio.type = "radio";
+      radio.name = `correct-choice-${uid}`;
+      radio.value = letter;
+      radio.checked = question.correctAnswer === letter;
+      radio.setAttribute("aria-label", `Choice ${letter} is the correct answer`);
+      radioLabel.append(radio, createElement("span", "choice-letter", letter));
+
+      const choiceInput = createElement("input", "edit-input choice-input");
+      choiceInput.type = "text";
+      choiceInput.dataset.letter = letter;
+      choiceInput.value = question.choices[index];
+      choiceInput.setAttribute("aria-label", `Choice ${letter}`);
+
+      row.append(radioLabel, choiceInput);
+      choicesGroup.append(row);
+    });
+
+    card.append(choicesGroup);
+  } else {
+    // The correct answer of an identification question
+    const answerField = createElement("div", "answer-field");
+    const answerLabel = createElement("label", "edit-label", "Correct Answer");
+    answerLabel.htmlFor = `question-answer-${uid}`;
+    const answerInput = createElement("input", "edit-input correct-answer-input");
+    answerInput.type = "text";
+    answerInput.id = `question-answer-${uid}`;
+    answerInput.autocomplete = "off";
+    answerInput.value = question.correctAnswer;
+    answerField.append(answerLabel, answerInput);
+
+    card.append(answerField);
+  }
+
+  // The error message of this question
+  const errorMessage = createElement("p", "error-message question-error");
+  errorMessage.id = `question-error-${uid}`;
+  card.append(errorMessage);
+
+  return card;
+}
+
+// Writes "Question 1", "Question 2"... again, so the numbers stay in order after adding or removing.
+function renumberQuestions() {
+  editQuestionsList.querySelectorAll(".question-card").forEach((card, index) => {
+    card.querySelector(".question-number").textContent = `Question ${index + 1}`;
+    card.querySelector(".remove-question-btn").setAttribute("aria-label", `Remove question ${index + 1}`);
+  });
+}
+
+// Puts a quiz into the edit form.
+function fillEditForm(details) {
+  clearEditErrors();
+  editQuizTitle.value = details.title;
+  editQuizDescription.value = details.description;
+  editQuestionsList.replaceChildren(...details.questions.map(createQuestionCard));
+  renumberQuestions();
+}
+
+// Reads everything the user typed in the edit form.
+function readFormData() {
+  const questions = Array.from(editQuestionsList.querySelectorAll(".question-card")).map((card) => {
+    const type = card.dataset.type;
+    const question = {
+      type,
+      text: card.querySelector(".question-text-input").value.trim(),
+    };
+
+    if (type === MULTIPLE_CHOICE) {
+      question.choices = CHOICE_LETTERS.map((letter) =>
+        card.querySelector(`.choice-input[data-letter="${letter}"]`).value.trim()
+      );
+      const selectedRadio = card.querySelector(".correct-choice-input:checked");
+      question.correctAnswer = selectedRadio ? selectedRadio.value : "";
+    } else {
+      question.correctAnswer = card.querySelector(".correct-answer-input").value.trim();
+    }
+
+    return question;
+  });
+
+  return {
+    title: editQuizTitle.value.trim(),
+    description: editQuizDescription.value.trim(),
+    questions,
+  };
+}
+
+// Turns the form data into what is sent to the backend.
+function buildQuizPayload(data) {
+  return {
+    title: data.title,
+    description: data.description,
+    questions: data.questions.map((question) => {
+      if (question.type === MULTIPLE_CHOICE) {
+        return {
+          type: question.type,
+          text: question.text,
+          choices: {
+            A: question.choices[0],
+            B: question.choices[1],
+            C: question.choices[2],
+            D: question.choices[3],
+          },
+          correctAnswer: question.correctAnswer,
+        };
+      }
+
+      return {
+        type: question.type,
+        text: question.text,
+        correctAnswer: question.correctAnswer,
+      };
+    }),
+  };
+}
+
+// ---- Editing: errors ----
+// Removes every error message in the edit box.
+function clearEditErrors() {
+  editQuizError.textContent = "";
+  editQuizTitleError.textContent = "";
+  editQuestionsError.textContent = "";
+
+  editQuizForm.querySelectorAll(".question-error").forEach((errorMessage) => {
+    errorMessage.textContent = "";
+  });
+
+  editQuizForm.querySelectorAll("[aria-invalid]").forEach((control) => {
+    control.removeAttribute("aria-invalid");
+    control.removeAttribute("aria-describedby");
+  });
+}
+
+// Checks the form. It shows the errors and returns true only if everything is filled in.
+function validateEditForm(data) {
+  clearEditErrors();
+
+  let firstInvalidControl = null;
+
+  // Shows one error under a field and remembers the first wrong field.
+  function markInvalid(control, errorMessage, message) {
+    errorMessage.textContent = message;
+    control.setAttribute("aria-invalid", "true");
+    control.setAttribute("aria-describedby", errorMessage.id);
+
+    if (!firstInvalidControl) {
+      firstInvalidControl = control;
+    }
+  }
+
+  if (!data.title) {
+    markInvalid(editQuizTitle, editQuizTitleError, "Enter a quiz title.");
+  }
+
+  if (data.questions.length === 0) {
+    editQuestionsError.textContent = "Add at least one question.";
+
+    if (!firstInvalidControl) {
+      firstInvalidControl = addQuestionBtn;
+    }
+  }
+
+  const cards = editQuestionsList.querySelectorAll(".question-card");
+
+  data.questions.forEach((question, index) => {
+    const card = cards[index];
+    const errorMessage = card.querySelector(".question-error");
+    const number = index + 1;
+
+    if (!question.text) {
+      markInvalid(card.querySelector(".question-text-input"), errorMessage, `Question ${number}: write the question.`);
+      return;
+    }
+
+    if (question.type === MULTIPLE_CHOICE) {
+      const emptyIndex = question.choices.findIndex((choice) => !choice);
+
+      if (emptyIndex !== -1) {
+        const letter = CHOICE_LETTERS[emptyIndex];
+        markInvalid(
+          card.querySelector(`.choice-input[data-letter="${letter}"]`),
+          errorMessage,
+          `Question ${number}: choice ${letter} is empty.`
+        );
+        return;
+      }
+
+      if (!question.correctAnswer) {
+        markInvalid(card.querySelector(".correct-choice-input"), errorMessage, `Question ${number}: select the correct answer.`);
+      }
+    } else if (!question.correctAnswer) {
+      markInvalid(card.querySelector(".correct-answer-input"), errorMessage, `Question ${number}: write the correct answer.`);
+    }
+  });
+
+  if (firstInvalidControl) {
+    editQuizError.textContent = "Please fix the errors above.";
+    firstInvalidControl.focus();
+    return false;
+  }
+
+  return true;
+}
+
+// ---- Editing: opening, closing and saving ----
+// true if the form has changes that were not saved.
+function isEditFormDirty() {
+  return editingQuiz !== null && editSnapshot !== "" && JSON.stringify(readFormData()) !== editSnapshot;
+}
+
+// Asks before throwing away unsaved changes. Returns true if it is fine to continue.
+function confirmDiscardChanges() {
+  if (!isEditFormDirty()) {
+    return true;
+  }
+  return window.confirm("You have unsaved changes. Discard them?");
+}
+
+// While saving: lock the whole form, so the quiz can't be sent twice or changed.
+function setSavingState(saving) {
+  isSaving = saving;
+  editQuizFieldset.disabled = saving;
+  saveQuizBtn.textContent = saving ? "Saving..." : "Save Changes";
+}
+
+// Closes the edit box and empties it.
+function closeEditBox() {
+  // A new number, so an answer that is still on its way from the backend is ignored.
+  openRequestId += 1;
+  editingQuiz = null;
+  editSnapshot = "";
+
+  setVisible(editQuizSection, false);
+  setVisible(editQuizForm, false);
+  editQuizStatus.textContent = "";
+  editQuizForm.reset();
+  editQuestionsList.replaceChildren();
+  clearEditErrors();
+}
+
+// Opens the edit box below the list and shows the quiz in it.
+async function openEditBox(quiz) {
+  if (isSaving) {
+    return;
+  }
+
+  // This quiz is already open: go back to its form.
+  if (editingQuiz && String(editingQuiz.id) === String(quiz.id)) {
+    editQuizSection.scrollIntoView({ block: "start" });
+    editQuizTitle.focus({ preventScroll: true });
+    return;
+  }
+
+  if (!confirmDiscardChanges()) {
+    return;
+  }
+
+  openRequestId += 1;
+  const requestId = openRequestId;
+
+  clearFormMessage();
+  clearEditErrors();
+  editingQuiz = quiz;
+  editSnapshot = "";
+  editQuizHeading.textContent = `Edit Quiz: ${quiz.title}`;
+  editQuizStatus.textContent = "Loading quiz...";
+  setVisible(editQuizForm, false);
+  setVisible(editQuizSection, true);
+  editQuizSection.scrollIntoView({ block: "start" });
+
+  let details = null;
+  let failMessage = "The quiz could not be opened.";
+
+  try {
+    if (USE_SAMPLE_DATA) {
+      // Simulation: read the quiz from the sample data.
+      const sampleQuiz = sampleQuizDetails.find((item) => item.id === quiz.id);
+      details = sampleQuiz ? normalizeQuizDetails(sampleQuiz) : null;
+    } else {
+      const response = await fetch(getQuizEndpoint(quiz.id));
+      const data = await response.json();
+
+      if (response.ok && data.success && data.quiz) {
+        details = normalizeQuizDetails(data.quiz);
+      } else if (data.message) {
+        failMessage = data.message;
+      }
+    }
+  } catch (error) {
+    // This runs when the request could not be sent or the reply was not JSON
+    console.error("Opening the quiz failed:", error);
+    failMessage = "Something went wrong. The quiz could not be opened.";
+  }
+
+  // Another quiz was opened (or the box was closed) while waiting, so this answer is old.
+  if (requestId !== openRequestId) {
+    return;
+  }
+
+  if (!details) {
+    closeEditBox();
+    showFormMessage(failMessage, "error");
+    return;
+  }
+
+  fillEditForm(details);
+  editSnapshot = JSON.stringify(readFormData());
+  editQuizStatus.textContent = "";
+  setVisible(editQuizForm, true);
+  editQuizTitle.focus({ preventScroll: true });
+}
+
+// Runs when Save Changes is pressed.
+async function saveQuiz() {
+  if (isSaving || !editingQuiz) {
+    return;
+  }
+
+  const quiz = editingQuiz;
+  const formData = readFormData();
+
+  if (!validateEditForm(formData)) {
+    return;
+  }
+
+  const payload = buildQuizPayload(formData);
+  setSavingState(true);
+
+  try {
+    let saved = true;
+    let failMessage = "";
+
+    if (USE_SAMPLE_DATA) {
+      // Simulation: no request is sent, the sample quiz is changed instead.
+      const sampleIndex = sampleQuizDetails.findIndex((item) => item.id === quiz.id);
+
+      if (sampleIndex !== -1) {
+        sampleQuizDetails[sampleIndex] = { id: quiz.id, ...payload };
+      }
+    } else {
+      const response = await fetch(getUpdateEndpoint(quiz.id), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+
+      // The save only counts if the backend answers with {"success": true}
+      saved = response.ok && result.success;
+      failMessage = result.message;
+    }
+
+    // The edit box was closed while saving (the quiz was deleted), so there is nothing to update.
+    if (editingQuiz !== quiz) {
+      return;
+    }
+
+    if (saved) {
+      quiz.title = payload.title;
+      quiz.questionCount = payload.questions.length;
+      closeEditBox();
+      renderQuizList();
+      showFormMessage(`"${quiz.title}" was saved.`, "success");
+    } else {
+      editQuizError.textContent = failMessage || "The quiz could not be saved.";
+    }
+  } catch (error) {
+    console.error("Saving the quiz failed:", error);
+
+    if (editingQuiz === quiz) {
+      editQuizError.textContent = "Something went wrong. The quiz has not been saved. Try again.";
+    }
+  } finally {
+    setSavingState(false);
   }
 }
 
@@ -308,9 +896,18 @@ nextPageBtn.addEventListener("click", () => {
   renderQuizList();
 });
 
-// Delete buttons. One listener on the table also works for rows drawn later.
+// Edit and Delete buttons. One listener on the table also works for rows drawn later.
 quizTableBody.addEventListener("click", (event) => {
+  const editButton = event.target.closest(".edit-quiz-btn");
   const deleteButton = event.target.closest(".delete-quiz-btn");
+
+  if (editButton) {
+    const quiz = allQuizzes.find((item) => String(item.id) === editButton.dataset.id);
+
+    if (quiz) {
+      openEditBox(quiz);
+    }
+  }
 
   if (deleteButton) {
     clearFormMessage();
@@ -330,6 +927,55 @@ cancelDeleteBtn.addEventListener("click", () => deleteDialog.close());
 deleteDialog.addEventListener("cancel", (event) => {
   if (isDeleting) {
     event.preventDefault();
+  }
+});
+
+// Edit box: Add Question button.
+addQuestionBtn.addEventListener("click", () => {
+  const type = newQuestionType.value === IDENTIFICATION ? IDENTIFICATION : MULTIPLE_CHOICE;
+  const card = createQuestionCard(createEmptyQuestion(type));
+
+  editQuestionsList.append(card);
+  editQuestionsError.textContent = "";
+  renumberQuestions();
+  card.querySelector(".question-text-input").focus();
+});
+
+// Edit box: Remove buttons of the questions. One listener on the list also works for new questions.
+editQuestionsList.addEventListener("click", (event) => {
+  const removeButton = event.target.closest(".remove-question-btn");
+
+  if (!removeButton) {
+    return;
+  }
+
+  const card = removeButton.closest(".question-card");
+  const nextCard = card.nextElementSibling || card.previousElementSibling;
+
+  card.remove();
+  renumberQuestions();
+
+  // The old messages mention question numbers that just changed, so remove them.
+  clearEditErrors();
+
+  // Keep the keyboard focus inside the form.
+  if (nextCard) {
+    nextCard.querySelector(".question-text-input").focus();
+  } else {
+    addQuestionBtn.focus();
+  }
+});
+
+// Edit box: Save Changes (the form is also sent with the Enter key).
+editQuizForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveQuiz();
+});
+
+// Edit box: Cancel button.
+cancelEditBtn.addEventListener("click", () => {
+  if (confirmDiscardChanges()) {
+    closeEditBox();
   }
 });
 

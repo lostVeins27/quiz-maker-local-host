@@ -116,8 +116,9 @@
   border-radius: 8px;
 }
 
-/*white box: search bar, table and pagination*/
-#quiz-list-section {
+/*white boxes: the quiz list (search bar, table and pagination) and the edit quiz box*/
+#quiz-list-section,
+#edit-quiz-section {
   min-width: 0;
   padding: 20px 24px 24px;
   background: var(--card);
@@ -192,10 +193,13 @@
   gap: 8px;
 }
 
-/*edit link, test and delete buttons (same style as the add question button)*/
-.edit-quiz-link,
+/*edit, test and delete buttons, page buttons and the edit box buttons (same style as the add question button)*/
+.edit-quiz-btn,
 .test-quiz-btn,
 .delete-quiz-btn,
+.remove-question-btn,
+#add-question-btn,
+#cancel-edit-btn,
 #previous-page-btn,
 #next-page-btn,
 #cancel-delete-btn {
@@ -211,9 +215,11 @@
   transition: background 0.2s, border-color 0.2s;
 }
 
-/*hovering the edit link, test button or page buttons: blue*/
-.edit-quiz-link:hover,
+/*hovering the edit button, test button or page buttons: blue*/
+.edit-quiz-btn:hover,
 .test-quiz-btn:hover,
+#add-question-btn:hover:not(:disabled),
+#cancel-edit-btn:hover:not(:disabled),
 #previous-page-btn:hover:not(:disabled),
 #next-page-btn:hover:not(:disabled),
 #cancel-delete-btn:hover {
@@ -221,8 +227,9 @@
   border-color: #93c5fd;
 }
 
-/*hovering the delete button: red (same as the remove question button)*/
-.delete-quiz-btn:hover {
+/*hovering the delete or remove button: red*/
+.delete-quiz-btn:hover,
+.remove-question-btn:hover:not(:disabled) {
   background: #fee2e2;
   border-color: #f87171;
 }
@@ -290,6 +297,216 @@
   color: #92400e;
   background: #fef3c7;
   border-color: #fcd34d;
+}
+
+/*edit quiz box: opens below the quiz list when edit is pressed*/
+#edit-quiz-section {
+  margin-top: 24px;
+}
+
+#edit-quiz-heading {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/*loading message while the quiz is being opened*/
+#edit-quiz-status {
+  margin: 0;
+  text-align: center;
+}
+
+#edit-quiz-status:empty {
+  display: none;
+}
+
+/*the fieldset only groups the form, so its default border and spacing are removed*/
+#edit-quiz-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/*one field: label on top, input below, error message under it*/
+.edit-field {
+  margin-bottom: 16px;
+}
+
+.edit-field .error-message {
+  margin-top: 6px;
+}
+
+.edit-label {
+  display: block;
+  margin: 0 0 6px;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/*text boxes, text areas and the question type list (same style as the search bar)*/
+.edit-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+textarea.edit-input {
+  resize: vertical;
+}
+
+.edit-input:focus-visible {
+  border-color: var(--primary);
+}
+
+.edit-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#edit-questions-heading {
+  margin: 8px 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/*one box for each question*/
+.question-card {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+/*top row of a question: number, type and remove button*/
+.question-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.question-number {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.question-type-label {
+  padding: 2px 10px;
+  font-size: 13px;
+  color: var(--primary-dark);
+  background: #eff6ff;
+  border-radius: 999px;
+}
+
+.remove-question-btn {
+  margin-left: auto;
+}
+
+/*the four choices of a multiple choice question*/
+.choices-fieldset {
+  min-width: 0;
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.choice-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.choice-radio-label {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.correct-choice-input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.choice-letter {
+  width: 14px;
+  font-weight: 600;
+}
+
+.choice-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/*the correct answer of an identification question*/
+.answer-field {
+  margin-top: 12px;
+}
+
+.question-error {
+  margin-top: 10px;
+}
+
+#edit-questions-error {
+  margin: 0 0 12px;
+}
+
+/*question type list and the add question button*/
+#add-question-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+#new-question-type {
+  width: auto;
+}
+
+#edit-quiz-error {
+  margin: 16px 0 0;
+}
+
+/*cancel and save buttons*/
+#edit-quiz-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/*save changes button (blue)*/
+#save-quiz-btn {
+  padding: 8px 18px;
+  font-family: inherit;
+  font-size: 15px;
+  color: #fff;
+  background: var(--primary);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#save-quiz-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
 }
 
 /*delete confirmation dialog*/
@@ -368,6 +585,8 @@ button:disabled {
 
 /*Keyboard focus(for ex. press tab)*/
 input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
 button:focus-visible,
 a:focus-visible {
   outline: 3px solid #93c5fd;
@@ -393,8 +612,31 @@ a:focus-visible {
     font-size: 28px;
   }
 
-  #quiz-list-section {
+  #quiz-list-section,
+  #edit-quiz-section {
     padding: 16px;
+  }
+
+  #edit-quiz-heading {
+    font-size: 20px;
+  }
+
+  .question-card {
+    padding: 12px;
+  }
+
+  /*question type list and add button under each other, cancel and save full width (save on top)*/
+  #add-question-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #new-question-type {
+    width: 100%;
+  }
+
+  #edit-quiz-actions {
+    flex-direction: column-reverse;
   }
 
   #quiz-table thead {

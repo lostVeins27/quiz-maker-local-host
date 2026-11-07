@@ -67,8 +67,59 @@
         </nav>
       </section>
 
-      <!--message shown after deleting a quiz (success or error)-->
+      <!--message shown after deleting or saving a quiz (success or error)-->
       <p id="form-message" role="status" aria-live="polite"></p>
+
+      <!--white box that opens below the list when Edit is pressed (the JavaScript fills it)-->
+      <section id="edit-quiz-section" aria-labelledby="edit-quiz-heading" hidden>
+        <h2 id="edit-quiz-heading">Edit Quiz</h2>
+
+        <!--loading message while the quiz is being opened-->
+        <p id="edit-quiz-status" role="status" aria-live="polite"></p>
+
+        <form id="edit-quiz-form" novalidate>
+          <fieldset id="edit-quiz-fieldset">
+            <legend class="visually-hidden">Quiz title, description and questions</legend>
+
+            <!--quiz title-->
+            <div class="edit-field">
+              <label for="edit-quiz-title" class="edit-label">Quiz Title</label>
+              <input type="text" id="edit-quiz-title" class="edit-input" autocomplete="off" />
+              <p class="error-message" id="edit-quiz-title-error"></p>
+            </div>
+
+            <!--quiz description-->
+            <div class="edit-field">
+              <label for="edit-quiz-description" class="edit-label">Description</label>
+              <textarea id="edit-quiz-description" class="edit-input" rows="3"></textarea>
+            </div>
+
+            <!--the JavaScript adds one box for each question of the quiz-->
+            <h3 id="edit-questions-heading">Questions</h3>
+            <div id="edit-questions-list"></div>
+            <p class="error-message" id="edit-questions-error"></p>
+
+            <!--choose a type and add a new question-->
+            <div id="add-question-controls">
+              <label for="new-question-type" class="visually-hidden">Type of the new question</label>
+              <select id="new-question-type" class="edit-input">
+                <option value="multiple_choice">Multiple Choice</option>
+                <option value="identification">Identification</option>
+              </select>
+              <button type="button" id="add-question-btn">Add Question</button>
+            </div>
+
+            <!--error message of the whole form-->
+            <p class="error-message" id="edit-quiz-error" aria-live="polite"></p>
+
+            <!--cancel and save buttons-->
+            <div id="edit-quiz-actions">
+              <button type="button" id="cancel-edit-btn">Cancel</button>
+              <button type="submit" id="save-quiz-btn">Save Changes</button>
+            </div>
+          </fieldset>
+        </form>
+      </section>
     </main>
 
     <!--delete confirmation dialog-->
