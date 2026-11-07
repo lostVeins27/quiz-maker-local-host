@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start Quiz</title>
+  <link rel="stylesheet" href="{{url_for('static', filename='start-quiz.css')}}">
+</head>
+<body>
+
+  <div id="start-quiz-page">
+
+    <!-- Page header -->
+    <header id="start-quiz-header">
+      <div id="start-quiz-heading">
+        <h1 id="start-quiz-title">Start Quiz</h1>
+        <p id="start-quiz-subtitle">Search and start one of your quizzes.</p>
+      </div>
+
+      <div id="start-quiz-header-buttons">
+        <a id="to-dashboard-button" href="/dashboard">To Dashboard</a>
+        <a id="create-quiz-button" href="/create-quiz">Create Quiz</a>
+      </div>
+    </header>
+
+    <!-- Quiz list card -->
+    <main id="quiz-card">
+      <input type="text" id="search-input" placeholder="Search quiz by title...">
+
+      <table id="quiz-table">
+        <thead>
+          <tr>
+            <th>Quiz Title</th>
+            <th>Questions</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="quiz-table-body"></tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div id="pagination">
+        <span id="showing-text"></span>
+        <div id="pagination-buttons">
+          <button type="button" id="previous-button">Previous</button>
+          <span id="page-text"></span>
+          <button type="button" id="next-button">Next</button>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Confirm popup -->
+  <div id="confirm-overlay" hidden>
+    <div id="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <h2 id="confirm-title">Start Quiz</h2>
+      <p id="confirm-message"></p>
+      <div id="confirm-buttons">
+        <button type="button" id="confirm-no-button">No</button>
+        <button type="button" id="confirm-yes-button">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{url_for('static', filename='start-quiz.js')}}" defer></script>
+</body>
+</html>

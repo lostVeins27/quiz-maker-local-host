@@ -268,13 +268,125 @@ def manage_quiz():
     return render_template("manage-quiz.html")
 
 
-@app.route("/create-quiz")
+@app.route("/create-quiz", methods=["GET", "POST"])
 def create_quiz():
 
     if "role" not in session or session["role"] != "professor":
         return redirect(url_for("dashboard"))
 
+    if request.method == "POST":
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "message": "Invalid submission data."}), 400
+
+        title = data.get("title", "").strip()
+        description = data.get("description", "").strip()
+        questions = data.get("questions", [])
+        professor_email = session.get("user_email")
+
+        if not title:
+            return jsonify({"success": False, "message": "Quiz title is required."}), 400
+
+        if not questions:
+            return jsonify({"success": False, "message": "At least one question is required."}), 400
+
+        try:
+            conn = sqlite3.connect("quizdb.db")
+            cursor = conn.cursor()
+
+            # 1. Insert into quiz table
+            cursor.execute(
+                """
+                INSERT INTO quiz (title, description, professor_email)
+                VALUES (?, ?, ?)
+                """,
+                (title, description, professor_email)
+            )
+            quiz_id = cursor.lastrowid
+
+            # 2. Insert questions and choices
+            for q in questions:
+                q_number = q.get("number")
+                q_text = q.get("text")
+                q_type = q.get("type")
+                correct_answer = q.get("correctAnswer")
+
+                cursor.execute(
+                    """
+                    INSERT INTO question (quiz_id, question_number, text, type, correct_answer)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (quiz_id, q_number, q_text, q_type, correct_answer)
+                )
+                question_id = cursor.lastrowid
+
+                # If multiple choice, insert choices
+                if q_type == "multiple-choice":
+                    for choice in q.get("choices", []):
+                        choice_label = choice.get("label")
+                        choice_text = choice.get("text")
+
+                        cursor.execute(
+                            """
+                            INSERT INTO choice (question_id, label, text)
+                            VALUES (?, ?, ?)
+                            """,
+                            (question_id, choice_label, choice_text)
+                        )
+
+            conn.commit()
+            conn.close()
+            return jsonify({"success": True})
+
+        except Exception as e:
+            print(f"--- DEBUG ERROR --- {e}")
+            return jsonify({"success": False, "message": "Database error while saving quiz."}), 500
+
     return render_template("create-quiz.html")
+
+@app.route("/debug-quiz")
+def debug_quiz():
+    """Debug endpoint to view all saved quizzes, questions, and choices."""
+    conn = sqlite3.connect("quizdb.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM quiz")
+    quizzes = cursor.fetchall()
+
+    debug_data = []
+    for q in quizzes:
+        quiz_dict = dict(q)
+        
+        # Get related questions
+        cursor.execute("SELECT * FROM question WHERE quiz_id = ?", (q["id"],))
+        questions = cursor.fetchall()
+        
+        question_list = []
+        for quest in questions:
+            quest_dict = dict(quest)
+            
+            # Get related choices if multiple-choice
+            cursor.execute("SELECT * FROM choice WHERE question_id = ?", (quest["id"],))
+            choices = cursor.fetchall()
+            quest_dict["choices"] = [dict(c) for c in choices]
+            
+            question_list.append(quest_dict)
+            
+        quiz_dict["questions"] = question_list
+        debug_data.append(quiz_dict)
+
+    conn.close()
+    return jsonify(debug_data)
+
+
+@app.route("/start-quiz")
+def start_quiz():
+
+    if "role" not in session or session["role"] != "professor":
+        return redirect(url_for("dashboard"))
+
+    return render_template("start-quiz.html")
 
 
 if __name__ == "__main__":
