@@ -116,8 +116,9 @@
   border-radius: 8px;
 }
 
-/*white boxes: the quiz list (search bar, table and pagination) and the edit quiz box*/
+/*white boxes: the quiz list (search bar, table and pagination), the view quiz box and the edit quiz box*/
 #quiz-list-section,
+#view-quiz-section,
 #edit-quiz-section {
   min-width: 0;
   padding: 20px 24px 24px;
@@ -186,19 +187,20 @@
   opacity: 0.7;
 }
 
-/*edit, test and delete buttons next to each other*/
+/*view, edit and delete buttons next to each other*/
 .quiz-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-/*edit, test and delete buttons, page buttons and the edit box buttons (same style as the add question button)*/
+/*view, edit and delete buttons, page buttons and the box buttons (same style as the add question button)*/
+.view-quiz-btn,
 .edit-quiz-btn,
-.test-quiz-btn,
 .delete-quiz-btn,
 .remove-question-btn,
 #add-question-btn,
+#close-view-btn,
 #cancel-edit-btn,
 #previous-page-btn,
 #next-page-btn,
@@ -215,10 +217,11 @@
   transition: background 0.2s, border-color 0.2s;
 }
 
-/*hovering the edit button, test button or page buttons: blue*/
+/*hovering the view button, edit button or page buttons: blue*/
+.view-quiz-btn:hover,
 .edit-quiz-btn:hover,
-.test-quiz-btn:hover,
 #add-question-btn:hover:not(:disabled),
+#close-view-btn:hover,
 #cancel-edit-btn:hover:not(:disabled),
 #previous-page-btn:hover:not(:disabled),
 #next-page-btn:hover:not(:disabled),
@@ -297,6 +300,130 @@
   color: #92400e;
   background: #fef3c7;
   border-color: #fcd34d;
+}
+
+/*view quiz box: opens below the quiz list when view is pressed*/
+#view-quiz-section {
+  margin-top: 24px;
+}
+
+#view-quiz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+#view-quiz-heading {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+#view-quiz-description {
+  margin: 0 0 16px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+#view-quiz-description:empty,
+#view-quiz-status:empty {
+  display: none;
+}
+
+/*loading message while the quiz is being opened*/
+#view-quiz-status {
+  margin: 0;
+  text-align: center;
+}
+
+/*one box for each question*/
+.view-question {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.view-question-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.view-question-number {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.view-question-text {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/*the four choices, the correct one is green*/
+.view-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.view-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.view-choice-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.view-choice.correct-choice {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.correct-mark {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #166534;
+}
+
+/*the correct answer of an identification question*/
+.view-answer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 12px;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+.view-answer-label {
+  font-weight: 600;
+  color: #166534;
 }
 
 /*edit quiz box: opens below the quiz list when edit is pressed*/
@@ -613,15 +740,18 @@ a:focus-visible {
   }
 
   #quiz-list-section,
+  #view-quiz-section,
   #edit-quiz-section {
     padding: 16px;
   }
 
+  #view-quiz-heading,
   #edit-quiz-heading {
     font-size: 20px;
   }
 
-  .question-card {
+  .question-card,
+  .view-question {
     padding: 12px;
   }
 

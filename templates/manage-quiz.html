@@ -70,6 +70,21 @@
       <!--message shown after deleting or saving a quiz (success or error)-->
       <p id="form-message" role="status" aria-live="polite"></p>
 
+      <!--white box that opens below the list when View is pressed (the JavaScript fills it)-->
+      <section id="view-quiz-section" aria-labelledby="view-quiz-heading" hidden>
+        <div id="view-quiz-header">
+          <h2 id="view-quiz-heading">View Quiz</h2>
+          <button type="button" id="close-view-btn">Close</button>
+        </div>
+        <p id="view-quiz-description"></p>
+
+        <!--loading message while the quiz is being opened-->
+        <p id="view-quiz-status" role="status" aria-live="polite"></p>
+
+        <!--the JavaScript adds one box for each question, with the correct answer shown-->
+        <div id="view-questions-list"></div>
+      </section>
+
       <!--white box that opens below the list when Edit is pressed (the JavaScript fills it)-->
       <section id="edit-quiz-section" aria-labelledby="edit-quiz-heading" hidden>
         <h2 id="edit-quiz-heading">Edit Quiz</h2>

@@ -12,7 +12,7 @@ function getDeleteEndpoint(quizId) {
 }
 
 // GET this address: must answer {"success": true, "quiz": { ... }} with the title, description
-// and questions of one quiz (see "How a quiz looks" below). It is used when Edit is pressed.
+// and questions of one quiz (see "How a quiz looks" below). It is used when View or Edit is pressed.
 function getQuizEndpoint(quizId) {
   return `/quizzes/${encodeURIComponent(quizId)}`;
 }
@@ -31,7 +31,7 @@ const DASHBOARD_PAGE_URL = "/dashboard";
 // How many quizzes are shown on one page.
 const QUIZZES_PER_PAGE = 10;
 
-// ---- How a quiz looks (the edit box reads and sends this shape) ----
+// ---- How a quiz looks (the view box and the edit box read this shape, the edit box also sends it) ----
 // {
 //   title: "Quiz title",
 //   description: "Short description",
@@ -52,7 +52,7 @@ const IDENTIFICATION = "identification";
 // ---- Simulation (for testing without a backend) ----
 // true  = the page uses the sample quiz below and never contacts the backend (a delete or an edit only affects the page, and a refresh brings the quiz back).
 // false = the page loads, edits and deletes real quizzes using the addresses above.
-const USE_SAMPLE_DATA = false;
+const USE_SAMPLE_DATA = true;
 
 // The sample quiz shown while USE_SAMPLE_DATA is true.
 const SAMPLE_QUIZZES = [
@@ -124,6 +124,12 @@ const deleteDialogText = document.getElementById("delete-dialog-text");
 const deleteDialogError = document.getElementById("delete-dialog-error");
 const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
 const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+const viewQuizSection = document.getElementById("view-quiz-section");
+const viewQuizHeading = document.getElementById("view-quiz-heading");
+const viewQuizDescription = document.getElementById("view-quiz-description");
+const viewQuizStatus = document.getElementById("view-quiz-status");
+const viewQuestionsList = document.getElementById("view-questions-list");
+const closeViewBtn = document.getElementById("close-view-btn");
 const editQuizSection = document.getElementById("edit-quiz-section");
 const editQuizHeading = document.getElementById("edit-quiz-heading");
 const editQuizStatus = document.getElementById("edit-quiz-status");
@@ -154,6 +160,12 @@ let quizToDelete = null;
 
 // true while a delete request is being sent, so it can't be sent twice.
 let isDeleting = false;
+
+// The quiz shown in the view box (null when the view box is closed).
+let viewingQuiz = null;
+
+// Counts every View press, so an old answer from the backend can be ignored.
+let viewRequestId = 0;
 
 // The quiz shown in the edit box (null when the edit box is closed).
 let editingQuiz = null;
@@ -253,6 +265,14 @@ function createQuizRow(quiz) {
   const actions = document.createElement("div");
   actions.className = "quiz-actions";
 
+  // View button (opens the view box below the list, with the correct answers shown)
+  const viewButton = document.createElement("button");
+  viewButton.type = "button";
+  viewButton.className = "view-quiz-btn";
+  viewButton.dataset.id = quiz.id;
+  viewButton.textContent = "View";
+  viewButton.setAttribute("aria-label", `View quiz ${quiz.title}`);
+
   // Edit button (opens the edit box below the list)
   const editButton = document.createElement("button");
   editButton.type = "button";
@@ -261,14 +281,6 @@ function createQuizRow(quiz) {
   editButton.textContent = "Edit";
   editButton.setAttribute("aria-label", `Edit quiz ${quiz.title}`);
 
-  // Test button (no function yet)
-  const testButton = document.createElement("button");
-  testButton.type = "button";
-  testButton.className = "test-quiz-btn";
-  testButton.dataset.id = quiz.id;
-  testButton.textContent = "Test";
-  testButton.setAttribute("aria-label", `Test quiz ${quiz.title}`);
-
   const deleteButton = document.createElement("button");
   deleteButton.type = "button";
   deleteButton.className = "delete-quiz-btn";
@@ -276,7 +288,7 @@ function createQuizRow(quiz) {
   deleteButton.textContent = "Delete";
   deleteButton.setAttribute("aria-label", `Delete quiz ${quiz.title}`);
 
-  actions.append(editButton, testButton, deleteButton);
+  actions.append(viewButton, editButton, deleteButton);
   actionsCell.appendChild(actions);
 
   row.append(titleCell, questionsCell, actionsCell);
@@ -395,6 +407,11 @@ async function confirmDelete() {
       allQuizzes = allQuizzes.filter((item) => item.id !== quiz.id);
       deleteDialog.close();
 
+      // If this quiz is open in the view box, close the box too.
+      if (viewingQuiz && String(viewingQuiz.id) === String(quiz.id)) {
+        closeViewBox();
+      }
+
       // If this quiz is open in the edit box, close the box too.
       if (editingQuiz && String(editingQuiz.id) === String(quiz.id)) {
         closeEditBox();
@@ -413,7 +430,7 @@ async function confirmDelete() {
   }
 }
 
-// ---- Editing: reading a quiz from the backend ----
+// ---- Reading a quiz from the backend (used by View and Edit) ----
 // Works out the type of a question. A question with choices is multiple choice.
 function getQuestionType(question) {
   const type = String(question.type ?? "").toLowerCase().replace(/[^a-z]+/g, "_");
@@ -434,7 +451,7 @@ function getChoices(question) {
   });
 }
 
-// Turns one question from the backend into the shape the edit box uses.
+// Turns one question from the backend into the shape the view box and the edit box use.
 function normalizeQuestion(question) {
   const type = getQuestionType(question);
   const choices = getChoices(question);
@@ -456,7 +473,7 @@ function normalizeQuestion(question) {
   return { type, text, choices, correctAnswer };
 }
 
-// Turns one full quiz from the backend into the shape the edit box uses.
+// Turns one full quiz from the backend into the shape the view box and the edit box use.
 function normalizeQuizDetails(quiz) {
   return {
     id: quiz.id,
@@ -464,6 +481,139 @@ function normalizeQuizDetails(quiz) {
     description: String(quiz.description ?? ""),
     questions: Array.isArray(quiz.questions) ? quiz.questions.map(normalizeQuestion) : [],
   };
+}
+
+// ---- Viewing a quiz (read only, with the correct answers shown) ----
+// Makes the box of one question. The correct answer is already shown.
+function createViewQuestion(question, index) {
+  const card = createElement("div", "view-question");
+
+  const header = createElement("div", "view-question-header");
+  header.append(
+    createElement("h4", "view-question-number", `Question ${index + 1}`),
+    createElement(
+      "span",
+      "question-type-label",
+      question.type === MULTIPLE_CHOICE ? "Multiple Choice" : "Identification"
+    )
+  );
+  card.append(header, createElement("p", "view-question-text", question.text));
+
+  if (question.type === MULTIPLE_CHOICE) {
+    // The four choices. The correct one is green.
+    const list = createElement("ul", "view-choices");
+
+    CHOICE_LETTERS.forEach((letter, choiceIndex) => {
+      const item = createElement("li", "view-choice");
+      item.append(
+        createElement("span", "choice-letter", letter),
+        createElement("span", "view-choice-text", question.choices[choiceIndex])
+      );
+
+      if (question.correctAnswer === letter) {
+        item.classList.add("correct-choice");
+        item.append(createElement("span", "correct-mark", "Correct answer"));
+      }
+
+      list.append(item);
+    });
+
+    card.append(list);
+  } else {
+    // The correct answer of an identification question
+    const answer = createElement("p", "view-answer");
+    answer.append(
+      createElement("span", "view-answer-label", "Correct Answer: "),
+      createElement("span", "view-answer-text", question.correctAnswer)
+    );
+    card.append(answer);
+  }
+
+  return card;
+}
+
+// Closes the view box and empties it.
+function closeViewBox() {
+  // A new number, so an answer that is still on its way from the backend is ignored.
+  viewRequestId += 1;
+  viewingQuiz = null;
+
+  setVisible(viewQuizSection, false);
+  viewQuizStatus.textContent = "";
+  viewQuizDescription.textContent = "";
+  viewQuestionsList.replaceChildren();
+}
+
+// Opens the view box below the list and shows the quiz in it.
+async function openViewBox(quiz) {
+  if (isSaving) {
+    return;
+  }
+
+  // This quiz is already open: go back to it.
+  if (viewingQuiz && String(viewingQuiz.id) === String(quiz.id)) {
+    viewQuizSection.scrollIntoView({ block: "start" });
+    return;
+  }
+
+  // The edit box is closed first (it asks before throwing away unsaved changes).
+  if (editingQuiz) {
+    if (!confirmDiscardChanges()) {
+      return;
+    }
+    closeEditBox();
+  }
+
+  viewRequestId += 1;
+  const requestId = viewRequestId;
+
+  clearFormMessage();
+  viewingQuiz = quiz;
+  viewQuizHeading.textContent = `View Quiz: ${quiz.title}`;
+  viewQuizDescription.textContent = "";
+  viewQuestionsList.replaceChildren();
+  viewQuizStatus.textContent = "Loading quiz...";
+  setVisible(viewQuizSection, true);
+  viewQuizSection.scrollIntoView({ block: "start" });
+
+  let details = null;
+  let failMessage = "The quiz could not be opened.";
+
+  try {
+    if (USE_SAMPLE_DATA) {
+      // Simulation: read the quiz from the sample data (it also shows saved edits).
+      const sampleQuiz = sampleQuizDetails.find((item) => item.id === quiz.id);
+      details = sampleQuiz ? normalizeQuizDetails(sampleQuiz) : null;
+    } else {
+      const response = await fetch(getQuizEndpoint(quiz.id));
+      const data = await response.json();
+
+      if (response.ok && data.success && data.quiz) {
+        details = normalizeQuizDetails(data.quiz);
+      } else if (data.message) {
+        failMessage = data.message;
+      }
+    }
+  } catch (error) {
+    // This runs when the request could not be sent or the reply was not JSON
+    console.error("Opening the quiz failed:", error);
+    failMessage = "Something went wrong. The quiz could not be opened.";
+  }
+
+  // Another quiz was opened (or the box was closed) while waiting, so this answer is old.
+  if (requestId !== viewRequestId) {
+    return;
+  }
+
+  if (!details) {
+    closeViewBox();
+    showFormMessage(failMessage, "error");
+    return;
+  }
+
+  viewQuizDescription.textContent = details.description;
+  viewQuizStatus.textContent = details.questions.length === 0 ? "This quiz has no questions yet." : "";
+  viewQuestionsList.replaceChildren(...details.questions.map(createViewQuestion));
 }
 
 // ---- Editing: the questions in the edit box ----
@@ -773,6 +923,8 @@ async function openEditBox(quiz) {
   const requestId = openRequestId;
 
   clearFormMessage();
+  // Only one box is open at a time, so the view box is closed.
+  closeViewBox();
   clearEditErrors();
   editingQuiz = quiz;
   editSnapshot = "";
@@ -908,10 +1060,19 @@ nextPageBtn.addEventListener("click", () => {
   renderQuizList();
 });
 
-// Edit and Delete buttons. One listener on the table also works for rows drawn later.
+// View, Edit and Delete buttons. One listener on the table also works for rows drawn later.
 quizTableBody.addEventListener("click", (event) => {
+  const viewButton = event.target.closest(".view-quiz-btn");
   const editButton = event.target.closest(".edit-quiz-btn");
   const deleteButton = event.target.closest(".delete-quiz-btn");
+
+  if (viewButton) {
+    const quiz = allQuizzes.find((item) => String(item.id) === viewButton.dataset.id);
+
+    if (quiz) {
+      openViewBox(quiz);
+    }
+  }
 
   if (editButton) {
     const quiz = allQuizzes.find((item) => String(item.id) === editButton.dataset.id);
@@ -941,6 +1102,9 @@ deleteDialog.addEventListener("cancel", (event) => {
     event.preventDefault();
   }
 });
+
+// View box: Close button.
+closeViewBtn.addEventListener("click", closeViewBox);
 
 // Edit box: Add Question button.
 addQuestionBtn.addEventListener("click", () => {
