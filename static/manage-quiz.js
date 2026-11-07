@@ -20,6 +20,9 @@ function getEditPageUrl(quizId) {
 // The page that creates a quiz.
 const CREATE_QUIZ_PAGE_URL = "/create-quiz";
 
+// The dashboard page.
+const DASHBOARD_PAGE_URL = "/dashboard";
+
 // How many quizzes are shown on one page.
 const QUIZZES_PER_PAGE = 10;
 
@@ -36,6 +39,7 @@ const SAMPLE_QUIZZES = [
 // Find each element on the page once, then reuse these variables.
 const apiStatusNotice = document.getElementById("api-status-notice");
 const createQuizLink = document.getElementById("create-quiz-link");
+const dashboardLink = document.getElementById("dashboard-link");
 const searchInput = document.getElementById("quiz-search");
 const quizTable = document.getElementById("quiz-table");
 const quizTableBody = document.getElementById("quiz-table-body");
@@ -321,8 +325,9 @@ deleteDialog.addEventListener("cancel", (event) => {
   }
 });
 
-// When the page loads: set the create quiz link, then load the quizzes.
+// When the page loads: set the header links, then load the quizzes.
 createQuizLink.href = CREATE_QUIZ_PAGE_URL;
+dashboardLink.href = DASHBOARD_PAGE_URL;
 setVisible(apiStatusNotice, !QUIZ_LIST_ENDPOINT);
 
 if (QUIZ_LIST_ENDPOINT) {

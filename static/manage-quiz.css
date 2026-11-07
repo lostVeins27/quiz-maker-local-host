@@ -62,13 +62,22 @@
   margin: 0;
 }
 
-/*create quiz link (same style as the save quiz button)*/
-#create-quiz-link {
+/*the two buttons on the right, one above the other*/
+#header-actions {
+  display: flex;
+  flex-direction: column;
   flex-shrink: 0;
+  gap: 10px;
+}
+
+/*create quiz and to dashboard links (same style as the save quiz button)*/
+#create-quiz-link,
+#dashboard-link {
   padding: 10px 20px;
   font-size: 16px;
   font-weight: 500;
   color: #fff;
+  text-align: center;
   text-decoration: none;
   background: var(--primary);
   border-radius: 12px;
@@ -82,8 +91,19 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
-#create-quiz-link:active {
+#create-quiz-link:active,
+#dashboard-link:active {
   transform: translateY(1px);
+}
+
+/*to dashboard link is red (same red as the confirm delete button)*/
+#dashboard-link {
+  background: #dc2626;
+}
+
+#dashboard-link:hover {
+  background: #b91c1c;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 /*notice when the quiz list is not connected (the JavaScript hides it when it is)*/
@@ -366,10 +386,6 @@ a:focus-visible {
 
   #page-title {
     font-size: 28px;
-  }
-
-  #create-quiz-link {
-    text-align: center;
   }
 
   #quiz-list-section {

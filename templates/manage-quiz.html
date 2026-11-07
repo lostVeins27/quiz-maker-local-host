@@ -17,7 +17,11 @@
           <h1 id="page-title">Manage Quizzes</h1>
           <p id="page-description">View, search, edit, and delete your quizzes.</p>
         </div>
-        <a id="create-quiz-link" href="#">Create Quiz</a>
+        <!--buttons on the right: to dashboard on top, create quiz below-->
+        <div id="header-actions">
+          <a id="dashboard-link" href="#">To Dashboard</a>
+          <a id="create-quiz-link" href="#">Create Quiz</a>
+        </div>
       </header>
 
       <!--notice shown by the JavaScript when the quiz list is not connected yet-->
@@ -78,6 +82,6 @@
       </div>
     </dialog>
 
-    <script src="{{url_for('static', filename='manage-quiz.js')}}" defer></script>
+    <script src="{{ url_for('static', filename='manage-quiz.js') }}" defer></script>
   </body>
 </html>
