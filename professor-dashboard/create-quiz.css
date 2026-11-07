@@ -30,6 +30,11 @@
   margin: 0 auto;
 }
 
+/*back to dashboard button at the top*/
+#dashboard-nav {
+  margin-bottom: 16px;
+}
+
 #page-title {
   margin: 0 0 24px;
   font-size: 40px;
@@ -127,8 +132,9 @@
   display: none;
 }
 
-/*add question button (same style as the logout button on the dashboards)*/
-#add-question-btn {
+/*add question and back to dashboard buttons (same style as the logout button on the dashboards)*/
+#add-question-btn,
+#dashboard-btn {
   padding: 8px 18px;
   font-family: inherit;
   font-size: 15px;
@@ -140,8 +146,9 @@
   transition: background 0.2s, border-color 0.2s;
 }
 
-/*when hovering your mouse on the add question button*/
-#add-question-btn:hover {
+/*when hovering your mouse on one of these two buttons*/
+#add-question-btn:hover,
+#dashboard-btn:hover {
   background: #eff6ff;
   border-color: #93c5fd;
 }
