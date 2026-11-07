@@ -30,11 +30,13 @@
   margin: 0 auto;
 }
 
-/*back to dashboard button at the top (pushed to the right)*/
+/*back to dashboard and manage quiz buttons at the top (one above the other, pushed to the right)*/
 #dashboard-nav {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 16px;
+  flex-direction: column;
+  gap: 10px;
+  width: fit-content;
+  margin: 0 0 16px auto;
 }
 
 #page-title {
@@ -134,9 +136,10 @@
   display: none;
 }
 
-/*add question and back to dashboard buttons (same style as the logout button on the dashboards)*/
+/*add question, back to dashboard and manage quiz buttons (same style as the logout button on the dashboards)*/
 #add-question-btn,
-#dashboard-btn {
+#dashboard-btn,
+#manage-quiz-btn {
   padding: 8px 18px;
   font-family: inherit;
   font-size: 15px;
@@ -148,9 +151,10 @@
   transition: background 0.2s, border-color 0.2s;
 }
 
-/*when hovering your mouse on one of these two buttons*/
+/*when hovering your mouse on one of these buttons*/
 #add-question-btn:hover,
-#dashboard-btn:hover {
+#dashboard-btn:hover,
+#manage-quiz-btn:hover {
   background: #eff6ff;
   border-color: #93c5fd;
 }
@@ -165,6 +169,18 @@
 #dashboard-btn:hover {
   background: #b91c1c;
   border-color: #b91c1c;
+}
+
+/*manage quiz button is blue (same blue as the save quiz button)*/
+#manage-quiz-btn {
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+#manage-quiz-btn:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
 }
 
 /*question text field*/

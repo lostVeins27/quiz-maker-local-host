@@ -7,6 +7,9 @@ const QUIZ_API_ENDPOINT = "/create-quiz";
 // The page the Back to Dashboard button goes to (the backend shows the professor dashboard to professors).
 const DASHBOARD_URL = "/dashboard";
 
+// The page the Manage Quiz button goes to (change it if your manage quiz route is different).
+const MANAGE_QUIZ_URL = "/manage-quiz";
+
 // The four choice letters, used to build the A-D fields.
 const CHOICE_LABELS = ["A", "B", "C", "D"];
 
@@ -31,6 +34,7 @@ const saveQuizBtn = document.getElementById("save-quiz-btn");
 const apiStatusNotice = document.getElementById("api-status-notice");
 const formMessage = document.getElementById("form-message");
 const dashboardBtn = document.getElementById("dashboard-btn");
+const manageQuizBtn = document.getElementById("manage-quiz-btn");
 const saveConfirmDialog = document.getElementById("save-confirm-dialog");
 const saveConfirmYesBtn = document.getElementById("save-confirm-yes-btn");
 const saveConfirmNoBtn = document.getElementById("save-confirm-no-btn");
@@ -481,7 +485,12 @@ saveConfirmDialog.addEventListener("close", () => {
 
 // Back to Dashboard button.
 dashboardBtn.addEventListener("click", () => {
-  window.location.href = "/dashboard";
+  window.location.href = DASHBOARD_URL;
+});
+
+// Manage Quiz button.
+manageQuizBtn.addEventListener("click", () => {
+  window.location.href = MANAGE_QUIZ_URL;
 });
 
 // When the page loads, show the "not connected" notice only if no address is set.
