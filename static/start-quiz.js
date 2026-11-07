@@ -11,6 +11,10 @@ const PASSING_PERCENT = 75;
 // The letters shown before the choices of a question
 const CHOICE_LETTERS = ["A", "B", "C", "D", "E", "F"];
 
+// Every quiz has its own 5 digit PIN (quiz.pin). It is made by a randomizer as soon as the quiz exists
+// (a quiz added on the Create Quiz page gets its PIN the next time this page opens) and the professor can always see it.
+// The student must enter this PIN before taking the quiz. A started quiz is saved with isActive = true.
+
 // Sample quizzes saved when there are no quizzes yet.
 // answer = the position of the correct choice (0 is the first choice).
 const SAMPLE_QUIZZES = [
@@ -68,6 +72,7 @@ const pageText = document.getElementById("page-text");
 const previousButton = document.getElementById("previous-button");
 const nextButton = document.getElementById("next-button");
 const confirmOverlay = document.getElementById("confirm-overlay");
+const confirmTitle = document.getElementById("confirm-title");
 const confirmMessage = document.getElementById("confirm-message");
 const confirmYesButton = document.getElementById("confirm-yes-button");
 const confirmNoButton = document.getElementById("confirm-no-button");
@@ -83,6 +88,9 @@ const testScoreText = document.getElementById("test-score-text");
 
 let quizzes = [];
 let currentPage = 1;
+
+// What the confirm popup is asking about: { type: "start" or "end", quiz } (null when the popup is closed)
+let confirmAction = null;
 
 // The quiz in the test box (null when the box is closed)
 let testingQuiz = null;
@@ -146,7 +154,7 @@ function renderTable() {
   if (pageQuizzes.length === 0) {
     const emptyRow = document.createElement("tr");
     const emptyCell = document.createElement("td");
-    emptyCell.colSpan = 3;
+    emptyCell.colSpan = 4;
     emptyCell.className = "empty-cell";
     emptyCell.textContent = "No quizzes found.";
     emptyRow.appendChild(emptyCell);
@@ -165,13 +173,25 @@ function renderTable() {
 
     const actionsCell = document.createElement("td");
 
-    const startButton = document.createElement("button");
-    startButton.type = "button";
-    startButton.className = "start-button";
-    startButton.textContent = "Start";
-    startButton.addEventListener("click", function () {
-      openConfirm(quiz);
-    });
+    // Start button. While the quiz is going it is a red End button instead.
+    const startEndButton = document.createElement("button");
+    startEndButton.type = "button";
+
+    if (quiz.isActive) {
+      startEndButton.className = "end-button";
+      startEndButton.textContent = "End";
+      startEndButton.setAttribute("aria-label", "End quiz " + quiz.title);
+      startEndButton.addEventListener("click", function () {
+        openConfirm(quiz, "end");
+      });
+    } else {
+      startEndButton.className = "start-button";
+      startEndButton.textContent = "Start";
+      startEndButton.setAttribute("aria-label", "Start quiz " + quiz.title);
+      startEndButton.addEventListener("click", function () {
+        openConfirm(quiz, "start");
+      });
+    }
 
     // Test button (beside the Start button): shows the quiz in a box below the list
     const testButton = document.createElement("button");
@@ -183,12 +203,24 @@ function renderTable() {
       openTestBox(quiz);
     });
 
-    actionsCell.appendChild(startButton);
+    actionsCell.appendChild(startEndButton);
     actionsCell.appendChild(testButton);
+
+    // PIN column (next to the Actions column): the 5 digit code of the quiz, always visible to the professor
+    const pinCell = document.createElement("td");
+
+    if (isValidPin(quiz.pin)) {
+      pinCell.className = "pin-cell";
+      pinCell.textContent = quiz.pin;
+    } else {
+      pinCell.className = "pin-empty";
+      pinCell.textContent = "\u2014";
+    }
 
     row.appendChild(titleCell);
     row.appendChild(questionsCell);
     row.appendChild(actionsCell);
+    row.appendChild(pinCell);
     quizTableBody.appendChild(row);
   });
 
@@ -444,15 +476,89 @@ function showTestScore() {
   testScoreButton.textContent = testScoreText.hidden ? "Score" : "Hide Score";
 }
 
-// Open the confirm popup
-function openConfirm(quiz) {
-  confirmMessage.textContent = 'Do you really want to start "' + quiz.title + '"?';
-  confirmOverlay.hidden = false;
-  confirmYesButton.focus();
+// Make a random 5 digit number (10000 to 99999) as text
+function randomFiveDigits() {
+  const range = 90000;
+
+  if (window.crypto && window.crypto.getRandomValues) {
+    const numbers = new Uint32Array(1);
+    window.crypto.getRandomValues(numbers);
+    return String(10000 + (numbers[0] % range));
+  }
+
+  return String(10000 + Math.floor(Math.random() * range));
+}
+
+// true if the PIN is exactly 5 digits
+function isValidPin(pin) {
+  return /^\d{5}$/.test(String(pin ?? ""));
+}
+
+// Use the randomizer to make a PIN that no quiz in the list has yet
+function generatePin(list) {
+  let pin = randomFiveDigits();
+
+  while (list.some(function (quiz) { return quiz.pin === pin; })) {
+    pin = randomFiveDigits();
+  }
+
+  return pin;
+}
+
+// Give a new PIN to every quiz that does not have one yet (for example a quiz that was just added).
+// Returns true if any PIN was added, so the quizzes can be saved.
+function addMissingPins(list) {
+  let added = false;
+
+  list.forEach(function (quiz) {
+    if (!isValidPin(quiz.pin)) {
+      quiz.pin = generatePin(list);
+      added = true;
+    }
+  });
+
+  return added;
+}
+
+// Start the quiz: it becomes active (the button changes to End). Its PIN stays the same.
+function startQuiz(quiz) {
+  if (quiz.isActive) {
+    return;
+  }
+
+  quiz.isActive = true;
+  saveQuizzes(quizzes);
+  renderTable();
+}
+
+// End the quiz: it is not active anymore (the button changes back to Start). Its PIN stays the same.
+function endQuiz(quiz) {
+  quiz.isActive = false;
+  saveQuizzes(quizzes);
+  renderTable();
+}
+
+// Open the confirm popup. type is "start" or "end".
+function openConfirm(quiz, type) {
+  confirmAction = { type: type, quiz: quiz };
+
+  if (type === "end") {
+    confirmTitle.textContent = "End Quiz";
+    confirmMessage.textContent = 'Do you really want to end the ongoing quiz "' + quiz.title + '"?';
+    confirmOverlay.hidden = false;
+    // No is selected first, so the quiz is not ended by accident
+    confirmNoButton.focus();
+  } else {
+    confirmTitle.textContent = "Start Quiz";
+    confirmMessage.textContent = 'Do you really want to start "' + quiz.title + '"?';
+    confirmOverlay.hidden = false;
+    confirmYesButton.focus();
+  }
 }
 
 // Close the confirm popup
 function closeConfirm() {
+  confirmAction = null;
   confirmOverlay.hidden = true;
 }
 
@@ -483,8 +589,22 @@ testForm.addEventListener("submit", function (event) {
 
 testScoreButton.addEventListener("click", showTestScore);
 
-// Yes and No only close the popup for now
-confirmYesButton.addEventListener("click", closeConfirm);
+// Yes does what the popup asked (start or end the quiz). No only closes the popup, so nothing changes.
+confirmYesButton.addEventListener("click", function () {
+  const action = confirmAction;
+  closeConfirm();
+
+  if (!action) {
+    return;
+  }
+
+  if (action.type === "end") {
+    endQuiz(action.quiz);
+  } else {
+    startQuiz(action.quiz);
+  }
+});
+
 confirmNoButton.addEventListener("click", closeConfirm);
 
 // Close the popup with the Escape key
@@ -494,6 +614,11 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-// Start
+// Start: load the quizzes, give a PIN to the ones that have none, then show them
 quizzes = loadQuizzes();
+
+if (addMissingPins(quizzes)) {
+  saveQuizzes(quizzes);
+}
+
 renderTable();

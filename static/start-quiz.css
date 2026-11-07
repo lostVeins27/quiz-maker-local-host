@@ -111,9 +111,9 @@ body {
   font-size: 18px;
 }
 
-/* Three equal columns: Quiz Title, Questions, Actions */
+/* Four equal columns: Quiz Title, Questions, Actions, PIN */
 #quiz-table th {
-  width: 33.33%;
+  width: 25%;
   padding: 18px 15px;
   border-bottom: 1px solid #d1d5db;
   text-align: left;
@@ -135,8 +135,20 @@ body {
   color: #6b7280;
 }
 
+/* PIN column: the 5 digit code of the quiz (always visible to the professor) */
+#quiz-table td.pin-cell {
+  font-weight: 600;
+  letter-spacing: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+#quiz-table td.pin-empty {
+  color: #6b7280;
+}
+
 /* Buttons inside the card */
 .start-button,
+.end-button,
 .test-button,
 #previous-button,
 #next-button,
@@ -151,7 +163,7 @@ body {
   cursor: pointer;
 }
 
-/* Space between the Start and Test buttons (they sit side by side) */
+/* Space between the Start (or End) and Test buttons (they sit side by side) */
 .test-button {
   margin-left: 8px;
 }
@@ -172,6 +184,23 @@ body {
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* The Start button turns into a red End button while the quiz is going */
+.end-button {
+  background-color: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.end-button:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.end-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25);
 }
 
 #previous-button:disabled,
@@ -609,7 +638,7 @@ body {
 
   /* Table scrolls sideways inside the card instead of squeezing the columns */
   #quiz-table {
-    min-width: 500px;
+    min-width: 640px;
   }
 
   #pagination {
