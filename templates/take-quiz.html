@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,23 +10,29 @@
   <body id="page-body">
     <main id="main-take-quiz-page">
 
-      <!--back button, shown only while the student is taking the quiz (the JavaScript shows it)-->
+      <!--back button, shown only while the student is taking the quiz-->
       <button type="button" id="back-btn" hidden>← Back</button>
 
       <!--the JavaScript writes the quiz title here-->
       <h1 id="page-title">Take Quiz</h1>
 
-      <!--loading or error message (the JavaScript fills it), and a button back to the PIN page if the quiz could not be opened-->
+      <!-- Timer display container -->
+      <div id="quiz-timer-container" hidden>
+        <span id="quiz-timer-label">Time Remaining:</span>
+        <span id="quiz-timer-value">--:--</span>
+      </div>
+
+      <!--loading or error message-->
       <p id="page-message" role="status" aria-live="polite"></p>
       <button type="button" id="back-to-pin-btn" hidden>Back to PIN Page</button>
 
-      <!--box with the description or instructions (the JavaScript hides it when the quiz has none)-->
+      <!--box with the description or instructions-->
       <section id="quiz-information" hidden>
         <h2 id="quiz-information-legend">Description / Instructions</h2>
         <p id="quiz-description"></p>
       </section>
 
-      <!--form with the questions (the JavaScript shows it when the quiz is loaded)-->
+      <!--form with the questions-->
       <form id="quiz-form" novalidate hidden>
 
         <!--questions part-->
@@ -41,15 +46,15 @@
         <!--submit quiz button-->
         <button type="submit" id="submit-quiz-btn">Submit Quiz</button>
 
-        <!--message shown after pressing submit (success, error or warning)-->
+        <!--message shown after pressing submit-->
         <p id="form-message" role="status" aria-live="polite"></p>
 
-        <!--shown after the quiz is submitted-->
+        <!--shown after the quiz is submitted or expired-->
         <button type="button" id="dashboard-btn" hidden>Back to Dashboard</button>
       </form>
     </main>
 
-    <!--pop up that asks if the user really wants to submit the quiz (opened by the JavaScript)-->
+    <!--pop up that asks if the user really wants to submit the quiz-->
     <dialog id="submit-confirm-dialog" aria-labelledby="submit-confirm-title">
       <h2 id="submit-confirm-title">Submit Quiz</h2>
       <p id="submit-confirm-text">Are you sure you want to submit this quiz?</p>
