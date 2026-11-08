@@ -89,6 +89,7 @@ const SAMPLE_QUIZZES = {
   },
 };
 
+const backBtn = document.getElementById("back-btn");
 const pageTitle = document.getElementById("page-title");
 const pageMessage = document.getElementById("page-message");
 const backToPinBtn = document.getElementById("back-to-pin-btn");
@@ -100,6 +101,7 @@ const submitQuizBtn = document.getElementById("submit-quiz-btn");
 const formMessage = document.getElementById("form-message");
 const dashboardBtn = document.getElementById("dashboard-btn");
 const submitConfirmDialog = document.getElementById("submit-confirm-dialog");
+const submitConfirmTitle = document.getElementById("submit-confirm-title");
 const submitConfirmText = document.getElementById("submit-confirm-text");
 const submitConfirmYesBtn = document.getElementById("submit-confirm-yes-btn");
 const submitConfirmNoBtn = document.getElementById("submit-confirm-no-btn");
@@ -112,6 +114,9 @@ let isSubmitting = false;
 
 // The answers that wait for the student to answer Yes or No in the pop up (null when nothing is waiting).
 let pendingAnswers = null;
+
+// What the pop up is asking: "submit" (submit the quiz) or "leave" (go back without submitting).
+let dialogMode = "submit";
 
 // ---- Small helpers ----
 // Shows or hides an element.
@@ -230,6 +235,7 @@ function renderQuiz(quiz) {
 
   showPageMessage(quiz.questions.length === 0 ? "This quiz has no questions yet." : "");
   setVisible(quizForm, quiz.questions.length > 0);
+  setVisible(backBtn, quiz.questions.length > 0);
 }
 
 // ---- Loading the quiz (runs when the page opens) ----
@@ -313,6 +319,7 @@ function collectAnswers() {
 // While submitting: lock the form and show "Submitting...", so nothing is changed or sent twice.
 function setSubmittingState(submitting) {
   isSubmitting = submitting;
+  backBtn.disabled = submitting;
 
   quizForm.querySelectorAll("input, button").forEach((control) => {
     control.disabled = submitting;
@@ -339,6 +346,8 @@ function handleQuizSubmit(event) {
     ? `You have ${unanswered} unanswered question${unanswered === 1 ? "" : "s"}. Are you sure you want to submit this quiz?`
     : "Are you sure you want to submit this quiz?";
 
+  dialogMode = "submit";
+  submitConfirmTitle.textContent = "Submit Quiz";
   pendingAnswers = answers;
   submitConfirmDialog.showModal();
 }
@@ -377,6 +386,7 @@ async function submitQuiz(answers) {
 
       showFormMessage("Quiz submitted successfully!", "success");
       setVisible(submitQuizBtn, false);
+      setVisible(backBtn, false);
       setVisible(dashboardBtn, true);
       dashboardBtn.disabled = false;
       dashboardBtn.focus();
@@ -396,8 +406,14 @@ async function submitQuiz(answers) {
 // Submit Quiz button (or the Enter key).
 quizForm.addEventListener("submit", handleQuizSubmit);
 
-// Pop up: Yes closes it and submits the quiz.
+// Pop up: Yes either leaves the quiz or submits it, depending on what the pop up asked.
 submitConfirmYesBtn.addEventListener("click", () => {
+  if (dialogMode === "leave") {
+    submitConfirmDialog.close();
+    window.location.href = PIN_PAGE_URL;
+    return;
+  }
+
   const answers = pendingAnswers;
   submitConfirmDialog.close();
 
@@ -414,6 +430,19 @@ submitConfirmNoBtn.addEventListener("click", () => {
 // However the pop up closes (Yes, No or the Escape key), nothing waits for an answer anymore.
 submitConfirmDialog.addEventListener("close", () => {
   pendingAnswers = null;
+});
+
+// Back button: ask before leaving, because the answers are not saved.
+backBtn.addEventListener("click", () => {
+  if (isSubmitting) {
+    return;
+  }
+
+  dialogMode = "leave";
+  pendingAnswers = null;
+  submitConfirmTitle.textContent = "Leave Quiz";
+  submitConfirmText.textContent = "Are you sure you want to leave? Your answers will not be saved.";
+  submitConfirmDialog.showModal();
 });
 
 // Back to PIN Page button (shown when the quiz could not be opened).
