@@ -97,8 +97,6 @@ def init_db():
         """)
         print("Test user inserted successfully!")
 
-        
-        
     conn.commit()
     conn.close()
 
@@ -125,7 +123,6 @@ def check_and_expire_quizzes():
 
     conn.commit()
     conn.close()
-
 
 def get_current_user():
     if "user_email" not in session:
@@ -154,7 +151,6 @@ def generate_unique_pin():
         if not cursor.fetchone():
             conn.close()
             return pin
-    
 
 @app.route("/")
 def home():
@@ -243,7 +239,6 @@ def signup_page():
     else:
         return render_template("signup.html")
 
-
 @app.route("/logout")
 def logout():
     session.clear()
@@ -319,7 +314,7 @@ def manage_quiz():
     
     return render_template("manage-quiz.html")
 
-# --- API ENDPOINTS MATCHING START-QUIZ.JS ---
+# --- API ENDPOINTS ---
 
 @app.route("/api/quizzes", methods=["GET"])
 def api_get_quizzes():
@@ -332,7 +327,7 @@ def api_get_quizzes():
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM quiz WHERE professor_email = ?", (session.get("user_email"),))
+    cursor.execute("SELECT * FROM quiz WHERE professor_email = ? ORDER BY id DESC", (session.get("user_email"),))
     quizzes = cursor.fetchall()
 
     result = []
@@ -372,19 +367,17 @@ def get_professor_quizzes():
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM quiz WHERE professor_email = ?", (professor_email,))
+        cursor.execute("SELECT * FROM quiz WHERE professor_email = ? ORDER BY id DESC", (professor_email,))
         quizzes = cursor.fetchall()
 
         quiz_list = []
         for q in quizzes:
             quiz_id = q["id"]
             
-            # Count actual submissions for this quiz
             cursor.execute("SELECT COUNT(*) as count FROM submission WHERE quiz_id = ?", (quiz_id,))
             sub_row = cursor.fetchone()
             submitted_count = sub_row["count"] if sub_row else 0
 
-            # Count questions
             cursor.execute("SELECT COUNT(*) as count FROM question WHERE quiz_id = ?", (quiz_id,))
             count_row = cursor.fetchone()
             question_count = count_row["count"] if count_row else 0
@@ -495,7 +488,7 @@ def get_quiz_results(quiz_id):
         return jsonify({"success": False, "message": "Unauthorized"}), 403
 
     try:
-        check_and_expire_quizzes() # Auto-expire if time ran out
+        check_and_expire_quizzes()
 
         conn = sqlite3.connect("quizdb.db")
         conn.row_factory = sqlite3.Row
@@ -511,9 +504,8 @@ def get_quiz_results(quiz_id):
         is_active = bool(quiz["is_active"])
         status_str = "active" if is_active else "inactive"
 
-        # Calculate accurate remaining seconds or set to infinite (-1) for untimed quizzes
         import datetime
-        time_remaining_seconds = -1  # Default to infinite (-1) if no duration is set
+        time_remaining_seconds = -1
         if is_active and quiz["duration_minutes"] and int(quiz["duration_minutes"]) > 0:
             try:
                 started = datetime.datetime.fromisoformat(quiz["started_at"])
@@ -523,8 +515,7 @@ def get_quiz_results(quiz_id):
             except Exception:
                 pass
 
-        # Fetch actual submissions for this quiz
-        cursor.execute("SELECT student_email, student_name, score, total_points, time_finished FROM submission WHERE quiz_id = ?", (quiz_id,))
+        cursor.execute("SELECT student_email, student_name, score, total_points, time_finished FROM submission WHERE quiz_id = ? ORDER BY id DESC", (quiz_id,))
         submissions = cursor.fetchall()
 
         results_list = []
@@ -552,6 +543,24 @@ def get_quiz_results(quiz_id):
     except Exception as e:
         print(f"--- DEBUG ERROR in get_quiz_results --- {e}")
         return jsonify({"success": False, "message": "Database error while loading results."}), 500
+
+@app.route("/quizzes/<int:quiz_id>/results/<student_email>", methods=["DELETE"])
+def allow_student_retake(quiz_id, student_email):
+    if "role" not in session or session["role"] != "professor":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    try:
+        conn = sqlite3.connect("quizdb.db")
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM submission WHERE quiz_id = ? AND student_email = ?", (quiz_id, student_email))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"--- DEBUG ERROR in allow_student_retake --- {e}")
+        return jsonify({"success": False, "message": "Database error while allowing retake."}), 500
 
 @app.route("/quizzes/<int:quiz_id>", methods=["GET", "PUT", "DELETE"])
 def handle_quiz(quiz_id):
@@ -582,7 +591,6 @@ def handle_quiz(quiz_id):
             questions = cursor.fetchall()
 
             for quest in questions:
-                # Normalize type for frontend consistency
                 q_type = quest["type"]
                 if q_type == "multiple-choice":
                     q_type = "multiple_choice"
@@ -633,7 +641,7 @@ def handle_quiz(quiz_id):
             for idx, q in enumerate(questions, start=1):
                 q_type = q.get("type")
                 if q_type == "multiple_choice":
-                    q_type = "multiple-choice"  # Map back to DB standard if needed
+                    q_type = "multiple-choice"
 
                 q_text = q.get("text")
                 correct_answer = q.get("correctAnswer")
@@ -649,7 +657,6 @@ def handle_quiz(quiz_id):
 
                 if q_type == "multiple-choice":
                     choices = q.get("choices", {})
-                    # Handle choices whether they come as a dictionary or a list
                     if isinstance(choices, dict):
                         for label, text in choices.items():
                             cursor.execute("INSERT INTO choice (question_id, label, text) VALUES (?, ?, ?)", (question_id, label, text))
@@ -664,7 +671,6 @@ def handle_quiz(quiz_id):
     except Exception as e:
         print(f"--- DEBUG ERROR in handle_quiz --- {e}")
         return jsonify({"success": False, "message": f"Database error: {str(e)}"}), 500
-
 
 @app.route("/create-quiz", methods=["GET", "POST"])
 def create_quiz():
@@ -716,11 +722,9 @@ def create_quiz():
                 )
                 question_id = cursor.lastrowid
 
-                # Handle choices for multiple-choice questions
                 if q_type == "multiple-choice":
                     choices = q.get("choices", [])
                     for choice in choices:
-                        # Handles both object format and direct string formatting if any variation exists
                         if isinstance(choice, dict):
                             choice_label = choice.get("label", "")
                             choice_text = choice.get("text", "").strip()
@@ -766,7 +770,6 @@ def take_quiz():
 
     return render_template("take-quiz.html")
 
-# For Pin Function21234
 @app.route("/take-quiz/verify-pin", methods=["POST"])
 def verify_quiz_pin():
     if "role" not in session or session["role"] != "student":
@@ -796,7 +799,6 @@ def verify_quiz_pin():
         conn.close()
         return jsonify({"success": False, "message": "This quiz is currently inactive or has expired."}), 400
 
-    # Check if this student has already submitted this quiz
     quiz_id = quiz["id"]
     cursor.execute("SELECT id FROM submission WHERE quiz_id = ? AND student_email = ?", (quiz_id, student_email))
     existing_submission = cursor.fetchone()
@@ -809,26 +811,6 @@ def verify_quiz_pin():
         }), 400
 
     return jsonify({"success": True})
-
-@app.route("/quizzes/<int:quiz_id>/results/<student_email>", methods=["DELETE"])
-def allow_student_retake(quiz_id, student_email):
-    if "role" not in session or session["role"] != "professor":
-        return jsonify({"success": False, "message": "Unauthorized"}), 403
-
-    try:
-        conn = sqlite3.connect("quizdb.db")
-        cursor = conn.cursor()
-
-        # Delete the submission for this quiz and student email
-        cursor.execute("DELETE FROM submission WHERE quiz_id = ? AND student_email = ?", (quiz_id, student_email))
-        conn.commit()
-        conn.close()
-
-        return jsonify({"success": True})
-    except Exception as e:
-        print(f"--- DEBUG ERROR in allow_student_retake --- {e}")
-        return jsonify({"success": False, "message": "Database error while allowing retake."}), 500
-
 
 @app.route("/take-quiz/load", methods=["POST"])
 def load_take_quiz():
@@ -859,7 +841,7 @@ def load_take_quiz():
         return jsonify({"success": False, "message": "This quiz is currently inactive or has expired."}), 403
 
     import datetime
-    time_remaining_seconds = None
+    time_remaining_seconds = -1
     if quiz["duration_minutes"] and quiz["started_at"]:
         try:
             started = datetime.datetime.fromisoformat(quiz["started_at"])
@@ -944,15 +926,12 @@ def submit_take_quiz():
     user = cursor.fetchone()
     student_name = f"{user['first_name']} {user['last_name']}" if user else student_email
 
-    # Fetch questions ordered by question_number to match the submitted array
     cursor.execute("SELECT id, correct_answer, type FROM question WHERE quiz_id = ? ORDER BY question_number ASC", (quiz_id,))
     questions = cursor.fetchall()
     
     score = 0
     total_points = len(questions)
 
-    # Build a lookup for answers by question number or index
-    # answers format from frontend: [ { number: 1, type: "...", answer: "..." }, ... ]
     answer_map = {item.get("number"): str(item.get("answer", "")).strip().lower() for item in answers}
 
     for idx, q in enumerate(questions, start=1):
@@ -962,7 +941,6 @@ def submit_take_quiz():
         if student_ans == correct and student_ans != "":
             score += 1
 
-    # Use a proper ISO format string for JavaScript Date compatibility
     import datetime
     time_finished = datetime.datetime.now().isoformat()
 
@@ -987,7 +965,6 @@ def get_student_results():
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # Fetch submissions for this specific student joined with the quiz title
         cursor.execute("""
             SELECT s.id, s.quiz_id, q.title as quizTitle, s.score, s.total_points as totalQuestions, 
                    s.time_taken as timeTaken, s.time_finished as submittedAt
@@ -1016,7 +993,6 @@ def get_student_results():
         print(f"--- DEBUG ERROR in get_student_results --- {e}")
         return jsonify({"success": False, "message": "Database error."}), 500
 
-
 @app.route("/api/student/results/<int:result_id>", methods=["DELETE"])
 def delete_student_result(result_id):
     if "role" not in session or session["role"] != "student":
@@ -1028,7 +1004,6 @@ def delete_student_result(result_id):
         conn = sqlite3.connect("quizdb.db")
         cursor = conn.cursor()
 
-        # Ensure the student only deletes their own submission record
         cursor.execute("DELETE FROM submission WHERE id = ? AND student_email = ?", (result_id, student_email))
         conn.commit()
         conn.close()
@@ -1038,8 +1013,6 @@ def delete_student_result(result_id):
     except Exception as e:
         print(f"--- DEBUG ERROR in delete_student_result --- {e}")
         return jsonify({"success": False, "message": "Database error while deleting."}), 500
-
-
 
 if __name__ == "__main__":
     init_db()
