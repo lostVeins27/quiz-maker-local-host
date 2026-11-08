@@ -24,20 +24,20 @@
         <a href="/dashboard" id="dashboard-button">To Dashboard</a>
       </header>
 
-      <!--table of the completed quizzes (rows are added by student-result.js)-->
-      <table id="result-table">
+      <!--table of the completed quizzes-->
+      <div id="result-table-wrapper">
+        <table id="result-table">
           <thead>
             <tr>
               <th scope="col">Quiz Name</th>
               <th scope="col">Score</th>
               <th scope="col">Date Answered</th>
-              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody id="result-table-body"></tbody>
         </table>
 
-        <!--loading, empty and error messages are written here by student-result.js-->
+        <!--loading, empty and error messages-->
         <p id="result-status" role="status" aria-live="polite">Loading results...</p>
       </div>
     </main>

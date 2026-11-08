@@ -775,6 +775,7 @@ def verify_quiz_pin():
 
     data = request.get_json() or {}
     pin = data.get("pin", "").strip()
+    student_email = session.get("user_email")
 
     if not pin:
         return jsonify({"success": False, "message": "PIN is required."}), 400
@@ -785,13 +786,26 @@ def verify_quiz_pin():
 
     cursor.execute("SELECT * FROM quiz WHERE pin = ?", (pin,))
     quiz = cursor.fetchone()
-    conn.close()
 
     if not quiz:
+        conn.close()
         return jsonify({"success": False, "message": "Invalid PIN. Quiz not found."}), 400
 
     if not quiz["is_active"]:
+        conn.close()
         return jsonify({"success": False, "message": "This quiz is currently inactive or has expired."}), 400
+
+    # Check if this student has already submitted this quiz
+    quiz_id = quiz["id"]
+    cursor.execute("SELECT id FROM submission WHERE quiz_id = ? AND student_email = ?", (quiz_id, student_email))
+    existing_submission = cursor.fetchone()
+    conn.close()
+
+    if existing_submission:
+        return jsonify({
+            "success": False, 
+            "message": "You have already completed this quiz. Please ask your professor for a retake test."
+        }), 400
 
     return jsonify({"success": True})
 

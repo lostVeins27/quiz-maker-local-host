@@ -75,59 +75,8 @@ function createQuizRow(quiz, index) {
   const dateCell = document.createElement("td");
   dateCell.textContent = formatDate(getSubmittedDate(quiz), "short");
 
-  // New Delete Action Cell
-  const actionCell = document.createElement("td");
-  const deleteBtn = document.createElement("button");
-  deleteBtn.type = "button";
-  deleteBtn.className = "delete-result-btn";
-  deleteBtn.textContent = "Delete";
-  deleteBtn.setAttribute("aria-label", `Delete result for ${quiz.quizTitle}`);
-  
-  // Prevent row accordion toggle when clicking the delete button
-  deleteBtn.addEventListener("click", function (event) {
-    event.stopPropagation();
-    deleteResultRecord(quiz.id, row);
-  });
-
-  actionCell.appendChild(deleteBtn);
-
-  row.append(nameCell, scoreCell, dateCell, actionCell);
+  row.append(nameCell, scoreCell, dateCell);
   return row;
-}
-
-async function deleteResultRecord(resultId, row) {
-  if (!confirm("Are you sure you want to delete this result record?")) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/student/results/${resultId}`, {
-      method: "DELETE",
-      credentials: "include"
-    });
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      // Remove both the main row and its corresponding details row from DOM
-      const detailsRowId = row.getAttribute("aria-controls");
-      const detailsRow = document.getElementById(detailsRowId);
-      
-      row.remove();
-      if (detailsRow) {
-        detailsRow.remove();
-      }
-
-      // Check if table is empty now
-      if (resultTableBody.children.length === 0) {
-        showStatus("You have not completed any quizzes yet.", false);
-      }
-    } else {
-      alert(data.message || "Could not delete result.");
-    }
-  } catch (err) {
-    console.error("Error deleting result:", err);
-    alert("Something went wrong while deleting.");
-  }
 }
 
 function createDetailsRow(quiz, index) {
@@ -137,7 +86,7 @@ function createDetailsRow(quiz, index) {
   row.hidden = true;
 
   const cell = document.createElement("td");
-  cell.colSpan = 4; // Updated span to match 4 columns
+  cell.colSpan = 3; // Updated to span across 3 columns
 
   const submittedDate = getSubmittedDate(quiz);
   const list = document.createElement("dl");
