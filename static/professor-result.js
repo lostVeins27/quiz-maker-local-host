@@ -13,8 +13,8 @@ const SAMPLE_RESULTS = {
   1: {
     quiz: { title: "Local History Quiz", status: "active", timeRemainingSeconds: 600 },
     results: [
-      { name: "John Doe", score: 18, total: 20, timeFinished: "2026-11-08T07:25:42" },
-      { name: "Jane Smith", score: 20, total: 20, timeFinished: "2026-11-08T07:30:08" },
+      { email: "john@example.com", name: "John Doe", score: 18, total: 20, timeFinished: "2026-11-08T07:25:42" },
+      { email: "jane@example.com", name: "Jane Smith", score: 20, total: 20, timeFinished: "2026-11-08T07:30:08" },
     ],
   },
 };
@@ -109,6 +109,7 @@ function normalizeResultsData(data) {
     status: String(quiz.status ?? "").toLowerCase() === "active" ? "active" : "inactive",
     timeRemainingSeconds: rawTime,
     results: results.map((result) => ({
+      email: String(result.email ?? ""),
       name: String(result.name ?? ""),
       score: Number(result.score) || 0,
       total: Number(result.total) || 0,
@@ -117,7 +118,6 @@ function normalizeResultsData(data) {
   };
 }
 
-// Helpers for formatting date and time cleanly
 function getSubmittedDate(timeFinishedStr) {
   return timeFinishedStr ? new Date(timeFinishedStr) : new Date(NaN);
 }
@@ -143,7 +143,31 @@ function formatTime(date) {
   });
 }
 
-// Creates row elements matching 4 columns: Name, Score, Date Finished, Time Finished
+// Function to handle allowing a student to retake
+async function allowRetake(studentEmail, rowElement) {
+  if (!confirm(`Are you sure you want to allow this student to retake the quiz?`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/quizzes/${encodeURIComponent(quizId)}/results/${encodeURIComponent(studentEmail)}`, {
+      method: "DELETE",
+    });
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      rowElement.remove();
+      loadResults(); // Reload results/summary numbers
+    } else {
+      alert(data.message || "Failed to allow retake.");
+    }
+  } catch (error) {
+    console.error("Error allowing retake:", error);
+    alert("Something went wrong.");
+  }
+}
+
+// Creates row elements matching 5 columns: Name, Score, Date Finished, Time Finished, Action (Retake)
 function createResultRow(result) {
   const row = document.createElement("div");
   row.className = "resultRow";
@@ -162,7 +186,15 @@ function createResultRow(result) {
   const timeFinishedSpan = document.createElement("span");
   timeFinishedSpan.textContent = formatTime(submittedDate);
 
-  row.append(name, score, dateFinishedSpan, timeFinishedSpan);
+  const actionSpan = document.createElement("span");
+  const retakeBtn = document.createElement("button");
+  retakeBtn.type = "button";
+  retakeBtn.className = "retake-btn";
+  retakeBtn.textContent = "Retake";
+  retakeBtn.addEventListener("click", () => allowRetake(result.email, row));
+  actionSpan.appendChild(retakeBtn);
+
+  row.append(name, score, dateFinishedSpan, timeFinishedSpan, actionSpan);
   return row;
 }
 

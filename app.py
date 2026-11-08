@@ -524,12 +524,13 @@ def get_quiz_results(quiz_id):
                 pass
 
         # Fetch actual submissions for this quiz
-        cursor.execute("SELECT student_name, score, total_points, time_finished FROM submission WHERE quiz_id = ?", (quiz_id,))
+        cursor.execute("SELECT student_email, student_name, score, total_points, time_finished FROM submission WHERE quiz_id = ?", (quiz_id,))
         submissions = cursor.fetchall()
 
         results_list = []
         for sub in submissions:
             results_list.append({
+                "email": sub["student_email"],
                 "name": sub["student_name"],
                 "score": sub["score"],
                 "total": sub["total_points"],
@@ -808,6 +809,25 @@ def verify_quiz_pin():
         }), 400
 
     return jsonify({"success": True})
+
+@app.route("/quizzes/<int:quiz_id>/results/<student_email>", methods=["DELETE"])
+def allow_student_retake(quiz_id, student_email):
+    if "role" not in session or session["role"] != "professor":
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    try:
+        conn = sqlite3.connect("quizdb.db")
+        cursor = conn.cursor()
+
+        # Delete the submission for this quiz and student email
+        cursor.execute("DELETE FROM submission WHERE quiz_id = ? AND student_email = ?", (quiz_id, student_email))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"--- DEBUG ERROR in allow_student_retake --- {e}")
+        return jsonify({"success": False, "message": "Database error while allowing retake."}), 500
 
 
 @app.route("/take-quiz/load", methods=["POST"])
