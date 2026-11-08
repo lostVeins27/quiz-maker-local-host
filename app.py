@@ -1,4 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, session
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import random
 
@@ -181,7 +182,7 @@ def login_page():
         user = cursor.fetchone()
         conn.close()
 
-        if user and user["password"] == password:
+        if user and check_password_hash(user["password"], password):
             session["user_email"] = user["email"]
             session["role"] = user["role"]
 
@@ -225,11 +226,13 @@ def signup_page():
             conn.close()
             return jsonify({"success": False, "message": "Email already exists!"}), 400
 
+        hashed_password = generate_password_hash(password)
+
         cursor.execute("""
                 INSERT INTO users (first_name, middle_name, last_name, email, password, role)
                 VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (first_name, middle_name, last_name, email, password, role),
+            (first_name, middle_name, last_name, email, hashed_password, role),
         )
         
         conn.commit()

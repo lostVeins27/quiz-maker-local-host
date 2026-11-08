@@ -253,7 +253,7 @@ form.addEventListener("submit", async function (event) {
     //if the server responds with a success status, redirect to the dashboard for the selected role
     if (response.ok) {
       showMessage("Account created! Redirecting to your dashboard...", "success");
-      window.location.href = "/users";
+      window.location.href = "/login";
     }
     //if the server responds with an error status, show the error message
     else {
