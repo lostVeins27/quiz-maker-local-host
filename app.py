@@ -515,7 +515,7 @@ def get_quiz_results(quiz_id):
             except Exception:
                 pass
 
-        cursor.execute("SELECT student_email, student_name, score, total_points, time_finished FROM submission WHERE quiz_id = ? ORDER BY id DESC", (quiz_id,))
+        cursor.execute("SELECT student_email, student_name, score, total_points, time_taken, time_finished FROM submission WHERE quiz_id = ? ORDER BY id DESC", (quiz_id,))
         submissions = cursor.fetchall()
 
         results_list = []
@@ -525,6 +525,7 @@ def get_quiz_results(quiz_id):
                 "name": sub["student_name"],
                 "score": sub["score"],
                 "total": sub["total_points"],
+                "timeTaken": sub["time_taken"] or 0,
                 "timeFinished": sub["time_finished"]
             })
 
@@ -900,6 +901,7 @@ def submit_take_quiz():
     data = request.get_json() or {}
     pin = data.get("pin", "").strip()
     answers = data.get("answers", [])
+    time_taken = int(data.get("timeTaken", 0))
     student_email = session.get("user_email")
 
     if not pin:
@@ -945,9 +947,9 @@ def submit_take_quiz():
     time_finished = datetime.datetime.now().isoformat()
 
     cursor.execute("""
-        INSERT INTO submission (quiz_id, student_email, student_name, score, total_points, time_finished)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (quiz_id, student_email, student_name, score, total_points, time_finished))
+        INSERT INTO submission (quiz_id, student_email, student_name, score, total_points, time_taken, time_finished)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (quiz_id, student_email, student_name, score, total_points, time_taken, time_finished))
 
     conn.commit()
     conn.close()

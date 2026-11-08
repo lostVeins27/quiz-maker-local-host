@@ -42,6 +42,7 @@ let dialogMode = "submit";
 
 let countdownTimer = null;
 let secondsLeft = -1;
+let quizStartTime = null; // Track when the student started the quiz
 
 function setVisible(element, isVisible) {
   element.hidden = !isVisible;
@@ -98,7 +99,6 @@ function startCountdown(seconds) {
 }
 
 function handleTimeExpired() {
-  // Lock the form and show expiration message
   setSubmittingState(true);
   showFormMessage("Time's up! The quiz has ended.", "error");
   setVisible(submitQuizBtn, false);
@@ -193,6 +193,7 @@ function createQuestionElement(question, number) {
 }
 
 function renderQuiz(quiz) {
+  quizStartTime = Date.now(); // Record start time
   pageTitle.textContent = quiz.title || "Take Quiz";
   document.title = quiz.title || "Take Quiz";
 
@@ -308,11 +309,14 @@ async function submitQuiz(answers) {
   setSubmittingState(true);
   showFormMessage("Submitting quiz...", "warning");
 
+  // Calculate elapsed time in seconds
+  const timeTaken = quizStartTime ? Math.floor((Date.now() - quizStartTime) / 1000) : 0;
+
   try {
     const response = await fetch(SUBMIT_QUIZ_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin: quizPin, answers }),
+      body: JSON.stringify({ pin: quizPin, answers, timeTaken }),
     });
     const data = await response.json();
 

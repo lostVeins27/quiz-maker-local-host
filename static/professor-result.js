@@ -13,8 +13,8 @@ const SAMPLE_RESULTS = {
   1: {
     quiz: { title: "Local History Quiz", status: "active", timeRemainingSeconds: 600 },
     results: [
-      { email: "john@example.com", name: "John Doe", score: 18, total: 20, timeFinished: "2026-11-08T07:25:42" },
-      { email: "jane@example.com", name: "Jane Smith", score: 20, total: 20, timeFinished: "2026-11-08T07:30:08" },
+      { email: "john@example.com", name: "John Doe", score: 18, total: 20, timeTaken: 11, timeFinished: "2026-11-08T07:25:42" },
+      { email: "jane@example.com", name: "Jane Smith", score: 20, total: 20, timeTaken: 45, timeFinished: "2026-11-08T07:30:08" },
     ],
   },
 };
@@ -113,6 +113,7 @@ function normalizeResultsData(data) {
       name: String(result.name ?? ""),
       score: Number(result.score) || 0,
       total: Number(result.total) || 0,
+      timeTaken: Number(result.timeTaken) || 0,
       timeFinished: String(result.timeFinished ?? ""),
     })),
   };
@@ -143,6 +144,31 @@ function formatTime(date) {
   });
 }
 
+function formatTimeTaken(totalSeconds) {
+  const seconds = Number(totalSeconds);
+
+  if (totalSeconds === null || !Number.isFinite(seconds) || seconds < 0) {
+    return "N/A";
+  }
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  const parts = [];
+
+  if (hours) {
+    parts.push(hours + "h");
+  }
+  if (minutes) {
+    parts.push(minutes + "m");
+  }
+  if (secs || parts.length === 0) {
+    parts.push(secs + "s");
+  }
+
+  return parts.join(" ");
+}
+
 // Function to handle allowing a student to retake
 async function allowRetake(studentEmail, rowElement) {
   if (!confirm(`Are you sure you want to allow this student to retake the quiz?`)) {
@@ -167,7 +193,7 @@ async function allowRetake(studentEmail, rowElement) {
   }
 }
 
-// Creates row elements matching 5 columns: Name, Score, Date Finished, Time Finished, Action (Retake)
+// Creates row elements matching 6 columns: Name, Score, Time Taken, Date Finished, Time Finished, Action
 function createResultRow(result) {
   const row = document.createElement("div");
   row.className = "resultRow";
@@ -177,6 +203,9 @@ function createResultRow(result) {
 
   const score = document.createElement("span");
   score.textContent = `${result.score}/${result.total}`;
+
+  const timeTakenSpan = document.createElement("span");
+  timeTakenSpan.textContent = formatTimeTaken(result.timeTaken);
 
   const submittedDate = getSubmittedDate(result.timeFinished);
 
@@ -194,7 +223,7 @@ function createResultRow(result) {
   retakeBtn.addEventListener("click", () => allowRetake(result.email, row));
   actionSpan.appendChild(retakeBtn);
 
-  row.append(name, score, dateFinishedSpan, timeFinishedSpan, actionSpan);
+  row.append(name, score, timeTakenSpan, dateFinishedSpan, timeFinishedSpan, actionSpan);
   return row;
 }
 
