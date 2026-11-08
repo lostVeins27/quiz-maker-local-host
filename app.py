@@ -910,11 +910,23 @@ def submit_take_quiz():
     user = cursor.fetchone()
     student_name = f"{user['first_name']} {user['last_name']}" if user else student_email
 
-    cursor.execute("SELECT id, correct_answer, type FROM question WHERE quiz_id = ?", (quiz_id,))
+    # Fetch questions ordered by question_number to match the submitted array
+    cursor.execute("SELECT id, correct_answer, type FROM question WHERE quiz_id = ? ORDER BY question_number ASC", (quiz_id,))
     questions = cursor.fetchall()
     
     score = 0
     total_points = len(questions)
+
+    # Build a lookup for answers by question number or index
+    # answers format from frontend: [ { number: 1, type: "...", answer: "..." }, ... ]
+    answer_map = {item.get("number"): str(item.get("answer", "")).strip().lower() for item in answers}
+
+    for idx, q in enumerate(questions, start=1):
+        correct = str(q["correct_answer"] or "").strip().lower()
+        student_ans = answer_map.get(idx, "")
+
+        if student_ans == correct and student_ans != "":
+            score += 1
 
     # Use a proper ISO format string for JavaScript Date compatibility
     import datetime
