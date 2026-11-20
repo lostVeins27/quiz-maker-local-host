@@ -49,5 +49,4 @@ Make sure **Python 3.10+** is installed, then install Flask (which also includes
   ```
 
 4. **Open in your browser:**
-
 Go to `http://127.0.0.1:5000` (or `http://localhost:5000`) to use the application.
