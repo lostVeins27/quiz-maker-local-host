@@ -1,10 +1,9 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
-import sqlite3
-import random
+import sqlite3, random, os
 
 app = Flask(__name__)
-app.secret_key = "asdfasdfasdfgsjhdafgjkxcgvjasdouryehrkjshdf"
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
 
 def init_db():
     """Automatically creates database tables and test user if they don't exist"""
@@ -85,18 +84,6 @@ def init_db():
         FOREIGN KEY (quiz_id) REFERENCES quiz(id) ON DELETE CASCADE
     )
     """)
-
-    # Check if test user already exists, if not, insert them
-    cursor.execute("SELECT * FROM users WHERE email = ?", ('email@example.com',))
-    if not cursor.fetchone():
-        cursor.execute("""
-        INSERT INTO users (first_name, middle_name, last_name, email, password, role)
-        VALUES 
-            ('John', 'M', 'Doe', 'email@example.com', 'passwordtesting', 'student'),
-            ('Daniel', 'D', 'Maninang', 'student@gmail.com', '123', 'student'),
-            ('Daniel', 'D', 'Maninang', 'professor@gmail.com', '123', 'professor')
-        """)
-        print("Test user inserted successfully!")
 
     conn.commit()
     conn.close()
@@ -261,26 +248,6 @@ def dashboard():
             return render_template("professor-dashboard.html", user = user)
         case _:
             return "Unauthorized role", 403
-
-@app.route("/users")
-def view_users():
-    conn = sqlite3.connect("quizdb.db")
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT id, first_name, last_name, email, role, password FROM users"
-    )
-    all_users = cursor.fetchall()
-    conn.close()
-
-    html = "<h1>Registered Users in Database</h1><ul>"
-    for user in all_users:
-        html += (
-            f"<li><strong>{user[0]} {user[1]} {user[2]}</strong> — {user[3]} ({user[4]}) password = {user[5]}</li> "
-        )
-    html += "</ul><br><a href='/login'>Go to Login</a> </ul><br><a href='/signup'>Go to Signup</a>"
-
-    return html
 
 @app.route("/result")
 def result():
@@ -1021,4 +988,4 @@ def delete_student_result(result_id):
 
 if __name__ == "__main__":
     init_db()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true")
