@@ -23,9 +23,27 @@ The platform, which is intended for use in classrooms and group assessments in a
 * **Database:** SQLite3
 * **Frontend:** HTML5, CSS3, JavaScript
 
+## Team & Contributions
+
+* **Backend & System Integration (Me):** Developed the Flask application and API endpoints, authentication/session and role routing, unique 5-digit PIN generation, timed quiz expiration logic, quiz grading and submission handling, and end-to-end integration across the backend, database, and frontend.
+* **Frontend (Zion):** Build the majority of the user interface across the authentication, professor, and student pages (`templates/` and `static/` styling and client-side scripts).
+* **Database Initialization(Isel):** Led the initial databse setup and table schema structure for SQLite (`users`, `quiz`, `question`, `choice` and `submission`).
+
 ## Getting Started (Local Setup)
 
-1. **Clone the repository**
+1. **Clone the repository:**
   ```bash
   git clone https://github.com/lostVeins27/quiz-maker-local-host
   cd quiz-maker-local-host
+  ```
+
+2. **Install Dependencies:**
+Make sure **Python 3.10+** is installed, then install Flask (which also includes Werkzeug):
+  ```bash
+  pip install flask
+  ```
+
+3. **Run the application:**
+  ```bash
+  python app.py
+  ```
