@@ -1,124 +1,31 @@
-# quiz-maker-local-host
+#  Quiz Maker (Local Host)
 
-Isel - Database (sa database branch ka mag push ng files mo)
-* MySQL database
-* SQL to flask
-* Tables and Result
-* Tables and elements
-  - users (gawa ka table for each ung nasababa ayun ung nilalaman nila)
-    - id (dapat hindi madoble)
-    - fullname
-    - username
-    - email
-    - password
-    - role
 
-  - Quizzes
-    - Id (dapat hindi madoble)
-    - title
-    - description
-    - created_by
+A role-based web application for creating, hositing, and taking quizzes over a local network, built with **Flask**, **SQLite**, **HTML**, **CSS*, and **JavaScript**.
 
-  - Questions
-    - id (dapat hindi madoble)
-    - quiz_id
-    - question_text
+## Overview
 
-  - Choices
-    - id (dapat hindi madoble)
-    - question_id
-    - choice_text
-    - is_correct
-   
-  - result
-    - id (dapat hindi madoble)
-    - quiz_id
-    - user_id
-    - score
-    - submitted_at
+The platform, which is intended for use in classrooms and group assessments in a local host environment, divides **Student** and **Professor** workflows. While students can join active quizzes via PIN, submit answers, and view results, professors can create and manage quizzes, create 5-digit PINs, set timed sessions, and review submissions.
 
-Daniel - Backend
-* Flask
-* Authentication
-* Quiz taking logic
-* Score calculation
+## Key Features
 
-Zion - Frontend (sa frontend branch ka mag push ng files mo)
-* HTML
-* CSS
-* Javascript
-* Pages
-  - Signup
-    - Full name (Text Field magkahiwalay ung first middle tapos last name tas may indicator bawat text field) 
-    - Username (Text field)
-    - Email (Text field)
-    - Password (Text Field pag nag type dapat *** ganyan lalabas)
-    - Confirm Password (Text Field pag nag type dapat *** ganyan lalabas)
-    - Account type Student/Professor (Radio button)
-    - Signup Button (Button)
-    - Already have an account? Login (Label pero ung "Login" clickable)
-      
-  - Login
-    - Username/Email (text field)
-    - Password (Text Field pag nag type dapat *** ganyan lalabas)
-    - Login Button (Button)
-    - Don't have an account? Signup (Label pero ung "Signup" clickable)
-    
-  - Professor Dashboard (Professor side)
-    - Welcome, Name (label welcome tapos name ng professor sa taas)
-    - Create quiz button (Button)
-    - Manage quizzes (Button)
-    - view result (Button)
-    - Logout (Button sa top right)
+* **Authentication & Role Routing:** User registration and login with hashed password(`werkzeug.security`), session handling, and role-based dashboards (`professor` and `student`).
 
-  - Create quiz page
-    - Quiz title (text field)
-    - Description/Instruction (Text field)
-    - Add Question (Button)
-    - Question Field (Text field lalabas pag napindot ung add question)
-    - Select Question type (Radio button for example multiple choice test, indentification)
-    - Add choices (Text field lalabas ung add choices depends sa question type na pinili ng user for example pinili nya multiple choice test lalabas apat na text field na nakalagay A. haggang D.)
-    - Select Correct Answer(Radio button pipili ung user sa A to D kung alin ung tamang sagot)
-    - Save quiz (Button)
-   
-  - Edit quiz page
-    - Modify title and Description
-    - Edit questions
-    - Change choices/correct answer
-    - Add/Remove question
-    - Update quiz
+* **Professor Workflow:** Create, edit, manage, and delete quizzes; toggle quizzes active status with optional time limits; generate random unique 5-digit PINs for students to enter to take that specific quiz for that PIN; inspect student scores and completion times; and professor allow retakes button.
 
-  - Quiz Management Page
-    - List of created quizzes
-    - Edit
-    - Delete
-    - Preview
-    - View Result
+* **Student Workflow:** Join active quizzes using a 5-digit PIN, complete timed or untimed tests with single-submission enforcement, and check personal results.
 
-  - Result Page
-    - List of students
-    - Score
-    - Percentage
-    - Date/Time
-    - Average Score
+* **Automatic SQLite Initialization:** Creates required tables (`users`, `quiz`, `question`, `choice`, `submission`) automatically on startup via `init_db()`.
 
-  - Quiz List(Student side)
-    - Available Quizzes
-    - Quiz title
-    - Number of questions
-    - Start Quiz Button
+## Tech Stack
 
-  - Take quiz page(Student side)
-    - Question
-    - Multiple Choice answers (kung multiple choice ung queston)
-    - Identification field (kung identification ung question)
-    - Question number
-    - Progress bar
-    - Previous/Next
-    - Submit quiz
-   
-  - Quiz Result Page(Student side)
-    - Score
-    - Percentage
-    - Number of correct/incorrect
-    - Retake Button (kung available)
+* **Backend:** Python, Flask, Werkzeug(`generate_password_hash` / `check_password_hash`)
+* **Database:** SQLite3
+* **Frontend:** HTML5, CSS3, JavaScript
+
+## Getting Started (Local Setup)
+
+1. **Clone the repository**
+  ```bash
+  git clone https://github.com/lostVeins27/quiz-maker-local-host
+  cd quiz-maker-local-host
